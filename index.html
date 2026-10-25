@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <title>ChaiRakshak-AI v2.6 • Autonomous UAV Spot-Spraying Command Station</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 
   <!-- Fonts & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -21,25 +21,27 @@
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <style>
-    body { font-family: 'Hanken Grotesk', system-ui, sans-serif; }
+    body { font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
     .font-mono { font-family: 'JetBrains Mono', monospace; }
     .font-headline { font-family: 'Space Grotesk', sans-serif; }
     #map { position: absolute; inset: 0; width: 100%; height: 100%; }
+    
     .hud-grid-pattern {
       background-size: 20px 20px;
       background-image: 
-        linear-gradient(to right, rgba(189, 201, 193, 0.25) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(189, 201, 193, 0.25) 1px, transparent 1px);
+        linear-gradient(to right, rgba(189, 201, 193, 0.22) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(189, 201, 193, 0.22) 1px, transparent 1px);
     }
     @keyframes pulse-subtle { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
     .animate-telemetry-pulse { animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-    .custom-scroll::-webkit-scrollbar { width: 5px; }
+    
+    .custom-scroll::-webkit-scrollbar { width: 4px; }
     .custom-scroll::-webkit-scrollbar-track { background: transparent; }
     .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 
-    /* Welcome Loader Animation Styles */
+    /* Welcome Preloader */
     #splash-screen {
-      transition: opacity 0.6s ease-out, visibility 0.6s ease-out;
+      transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
     }
     .radar-sweep {
       background: conic-gradient(from 0deg, rgba(16, 185, 129, 0.35) 0deg, rgba(16, 185, 129, 0) 60deg, transparent 60deg);
@@ -49,44 +51,50 @@
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
+
+    /* Mobile Sheet Drawer Transitions */
+    @media (max-width: 1023px) {
+      .mobile-drawer-collapsed {
+        transform: translateY(calc(100% - 94px));
+      }
+      .mobile-drawer-expanded {
+        transform: translateY(0);
+      }
+    }
   </style>
 </head>
 <body class="bg-[#faf8ff] text-[#131b2e] antialiased flex flex-col h-screen overflow-hidden selection:bg-[#82f5c1]">
 
-  <!-- ================= HIGH-TECH WELCOME & TELEMETRY PRE-LOADER ================= -->
+  <!-- ================= WELCOME TELEMETRY SPLASH SCREEN ================= -->
   <div id="splash-screen" class="fixed inset-0 z-50 bg-[#09101d] flex flex-col items-center justify-center p-6 text-white font-mono select-none">
-    <div class="relative w-64 h-64 flex items-center justify-center mb-8">
-      <!-- Radar Rings -->
+    <div class="relative w-56 h-56 sm:w-64 sm:h-64 flex items-center justify-center mb-6 sm:mb-8">
       <div class="absolute inset-0 rounded-full border border-emerald-500/20"></div>
       <div class="absolute inset-8 rounded-full border border-emerald-500/30"></div>
       <div class="absolute inset-16 rounded-full border border-emerald-500/40"></div>
       <div class="absolute inset-0 rounded-full radar-sweep"></div>
       
-      <!-- Central Branding Badge -->
       <div class="relative z-10 w-20 h-20 rounded-2xl bg-gradient-to-tr from-emerald-700 to-teal-500 border border-emerald-400/50 flex flex-col items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.3)]">
         <span class="font-headline text-3xl font-bold text-white leading-none">চ</span>
         <span class="text-[9px] font-bold text-emerald-100 tracking-wider uppercase mt-1">UAV OPS</span>
       </div>
 
-      <!-- Crosshairs -->
       <div class="absolute inset-x-0 top-1/2 h-px bg-emerald-500/20"></div>
       <div class="absolute inset-y-0 left-1/2 w-px bg-emerald-500/20"></div>
     </div>
 
-    <!-- Status Messages & Progress -->
-    <div class="w-full max-w-md space-y-4 text-center">
+    <div class="w-full max-w-sm sm:max-w-md space-y-4 text-center">
       <div>
-        <h1 class="font-headline text-2xl font-bold tracking-tight text-white mb-1">ChaiRakshak-AI (চাহ-ৰক্ষক)</h1>
+        <h1 class="font-headline text-xl sm:text-2xl font-bold tracking-tight text-white mb-1">ChaiRakshak-AI (চাহ-ৰক্ষক)</h1>
         <p class="text-xs text-emerald-400 font-medium">TRA Tocklai • Precision Spot-Spraying GIS v2.6</p>
       </div>
 
-      <div class="bg-slate-900/80 border border-slate-800 rounded-lg p-3 text-left space-y-1.5 text-xs">
+      <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-3 text-left space-y-1.5 text-xs">
         <div class="flex items-center justify-between text-slate-400">
           <span id="splash-status-text">Synchronizing RTK Ground Station...</span>
-          <span class="text-emerald-400" id="splash-pct">32%</span>
+          <span class="text-emerald-400" id="splash-pct">28%</span>
         </div>
         <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-          <div id="splash-progress-bar" class="h-full bg-emerald-500 transition-all duration-300 w-1/3"></div>
+          <div id="splash-progress-bar" class="h-full bg-emerald-500 transition-all duration-300 w-1/4"></div>
         </div>
         <div class="text-[10px] text-slate-500 flex justify-between pt-1">
           <span>COPERNICUS/S2_SR Harmonized</span>
@@ -96,27 +104,27 @@
     </div>
   </div>
 
-  <!-- ================= TOP COMMAND BAR ================= -->
-  <header class="bg-white border-b border-[#e2e8f0] px-4 py-2 flex justify-between items-center w-full z-30 shrink-0">
-    <div class="flex items-center gap-4">
-      <div class="flex items-center gap-2">
+  <!-- ================= TOP RESPONSIVE HEADER ================= -->
+  <header class="bg-white border-b border-[#e2e8f0] px-3 sm:px-4 py-2 flex items-center justify-between w-full z-30 shrink-0">
+    <!-- Left: Branding & District/Estate Dropdown -->
+    <div class="flex items-center gap-2 sm:gap-4 overflow-hidden">
+      <div class="flex items-center gap-2 shrink-0">
         <span class="w-8 h-8 rounded-lg bg-[#005d42] flex items-center justify-center text-white font-headline text-lg font-bold shadow-sm">চ</span>
         <div class="flex flex-col">
           <div class="flex items-center gap-1.5">
-            <span class="font-headline text-base font-bold text-[#005d42] tracking-tight">ChaiRakshak-AI</span>
-            <span class="font-mono text-[10px] bg-[#eaedff] text-[#005d42] font-semibold px-1.5 py-0.2 rounded border border-[#dae2fd]">v2.6-PRO</span>
+            <span class="font-headline text-sm sm:text-base font-bold text-[#005d42] tracking-tight leading-tight">ChaiRakshak-AI</span>
+            <span class="font-mono text-[9px] sm:text-[10px] bg-[#eaedff] text-[#005d42] font-semibold px-1 py-0.2 rounded border border-[#dae2fd]">v2.6</span>
           </div>
-          <span class="font-mono text-[10px] text-[#6e7a73] font-medium">চাহ-ৰক্ষক • TRA Tocklai Compliance Engine</span>
+          <span class="font-mono text-[9px] sm:text-[10px] text-[#6e7a73] truncate max-w-[150px] sm:max-w-none">TRA Tocklai Compliance</span>
         </div>
       </div>
 
       <div class="h-6 w-px bg-[#e2e8f0] hidden md:block"></div>
 
-      <!-- Real Estate Dropdown Selector (10 Verified Estates) -->
-      <div class="flex items-center bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-2.5 py-1">
-        <span class="material-symbols-outlined text-[#005d42] text-[18px] mr-1.5">share_location</span>
-        <span class="font-mono text-xs text-[#6e7a73] mr-1 hidden sm:inline">Target Estate:</span>
-        <select id="estate-selector" class="bg-transparent font-mono text-xs text-[#005d42] font-bold focus:outline-none cursor-pointer border-none py-0">
+      <!-- Estate Picker -->
+      <div class="flex items-center bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-2 py-1 max-w-[170px] sm:max-w-xs md:max-w-sm">
+        <span class="material-symbols-outlined text-[#005d42] text-[16px] sm:text-[18px] mr-1 shrink-0">share_location</span>
+        <select id="estate-selector" class="bg-transparent font-mono text-xs text-[#005d42] font-bold focus:outline-none cursor-pointer border-none py-0 w-full truncate">
           <option value="Chota Tingrai Tea Estate" selected>Chota Tingrai TE (Tinsukia)</option>
           <option value="Deha Tea Estate">Deha TE (Jorhat)</option>
           <option value="Green View Tea Estate">Green View TE (Jorhat)</option>
@@ -131,42 +139,62 @@
       </div>
     </div>
 
-    <!-- RTK & Standardized UAV Download Controls -->
-    <div class="flex items-center gap-2.5">
-      <div class="hidden xl:flex items-center gap-2 bg-white border border-[#e2e8f0] px-3 py-1 rounded-lg">
+    <!-- Right Actions: Standardized Downward Exports -->
+    <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+      <div class="hidden xl:flex items-center gap-2 bg-white border border-[#e2e8f0] px-2.5 py-1 rounded-lg">
         <span class="w-2 h-2 rounded-full bg-[#047857] animate-telemetry-pulse"></span>
         <span class="font-mono text-xs text-[#047857] font-semibold">UAV RTK Fixed</span>
         <span class="font-mono text-xs text-[#6e7a73]">| 2.5m AGL Target</span>
       </div>
 
-      <!-- Downwards Arrow Icons for Proper Downloads -->
-      <button id="btn-export-kml" class="bg-white hover:bg-[#f8fafc] text-[#131b2e] border border-[#cbd5e1] font-mono text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition active:scale-95 shadow-sm" title="Download UAV Waypoint Mission (.kml)">
+      <!-- KML Export Button with Downward Icon -->
+      <button id="btn-export-kml" class="bg-white hover:bg-[#f8fafc] text-[#131b2e] border border-[#cbd5e1] font-mono text-xs font-semibold px-2.5 sm:px-3 py-1.5 rounded-lg flex items-center gap-1 transition active:scale-95 shadow-sm" title="Download UAV Waypoint Mission (.kml)">
         <span class="material-symbols-outlined text-[#005d42] text-[18px]">download</span>
-        <span class="hidden sm:inline">Download UAV Waypoints (.kml)</span>
-        <span class="sm:hidden">UAV KML</span>
+        <span class="hidden md:inline">Download UAV Waypoints (.kml)</span>
+        <span class="md:hidden">KML</span>
       </button>
 
-      <button id="btn-export-geojson" class="bg-[#005d42] hover:bg-[#047857] text-white font-mono text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition active:scale-95 shadow-sm" title="Download Infested Area Polygon (.geojson)">
+      <!-- GeoJSON Export Button with Downward Icon -->
+      <button id="btn-export-geojson" class="bg-[#005d42] hover:bg-[#047857] text-white font-mono text-xs font-semibold px-2.5 sm:px-3 py-1.5 rounded-lg flex items-center gap-1 transition active:scale-95 shadow-sm" title="Download Infested Area Polygon (.geojson)">
         <span class="material-symbols-outlined text-white text-[18px]">arrow_downward</span>
-        <span class="hidden sm:inline">Download Infested Area (.geojson)</span>
-        <span class="sm:hidden">GeoJSON</span>
+        <span class="hidden md:inline">Download Infested Area (.geojson)</span>
+        <span class="md:hidden">GeoJSON</span>
+      </button>
+
+      <!-- Mobile Telemetry Drawer Toggle Button -->
+      <button id="btn-toggle-drawer" class="lg:hidden bg-[#f1f5f9] hover:bg-[#e2e8f0] p-1.5 rounded-lg text-[#005d42] flex items-center justify-center">
+        <span class="material-symbols-outlined text-[20px]" id="icon-toggle-drawer">dashboard</span>
       </button>
     </div>
   </header>
 
-  <!-- ================= WORKSPACE BODY (SIDEBAR + SATELLITE MAP) ================= -->
+  <!-- ================= WORKSPACE BODY ================= -->
   <div class="flex-1 flex overflow-hidden relative">
 
-    <!-- LEFT SIDEBAR ANALYTICS -->
-    <aside class="w-[410px] bg-white border-r border-[#e2e8f0] flex flex-col justify-between p-4 z-20 shrink-0 custom-scroll overflow-y-auto">
-      <div class="space-y-3.5">
+    <!-- DESKTOP SIDEBAR / MOBILE SLIDING BOTTOM SHEET -->
+    <aside id="telemetry-panel" class="mobile-drawer-collapsed lg:transform-none fixed lg:static bottom-0 inset-x-0 lg:inset-auto z-20 w-full lg:w-[410px] max-h-[85vh] lg:max-h-full bg-white border-t lg:border-t-0 lg:border-r border-[#e2e8f0] flex flex-col justify-between shadow-2xl lg:shadow-none transition-transform duration-300 ease-in-out shrink-0">
+      
+      <!-- Mobile Drawer Handle Bar -->
+      <div id="drawer-handle" class="lg:hidden p-2.5 flex flex-col items-center justify-center border-b border-[#e2e8f0] cursor-pointer bg-[#faf8ff]">
+        <div class="w-12 h-1.5 bg-[#cbd5e1] rounded-full mb-1"></div>
+        <div class="flex items-center justify-between w-full px-2 text-xs font-mono">
+          <span class="font-bold text-[#005d42] flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-[#047857] animate-telemetry-pulse"></span>
+            Telemetry & Phenology
+          </span>
+          <span class="text-[11px] text-[#6e7a73]" id="drawer-hint-text">Tap to expand ▲</span>
+        </div>
+      </div>
 
-        <!-- Top 4 KPIs -->
+      <!-- Scrollable Telemetry Content -->
+      <div class="p-3 sm:p-4 space-y-3.5 custom-scroll overflow-y-auto">
+
+        <!-- Top 4 KPIs Grid -->
         <div class="grid grid-cols-2 gap-2">
           <div class="bg-[#f8fafc] border border-[#e2e8f0] rounded-lg p-2.5">
             <span class="font-mono text-[10px] uppercase text-[#6e7a73] font-semibold block">Chemical Reduction</span>
             <div class="flex items-baseline gap-1 mt-0.5">
-              <span class="font-headline text-2xl font-bold text-[#047857]" id="kpi-reduction">94.7%</span>
+              <span class="font-headline text-xl sm:text-2xl font-bold text-[#047857]" id="kpi-reduction">94.7%</span>
             </div>
             <span class="font-mono text-[10px] text-[#047857] font-medium block">vs blanket spraying</span>
           </div>
@@ -174,7 +202,7 @@
           <div class="bg-[#f8fafc] border border-[#e2e8f0] rounded-lg p-2.5">
             <span class="font-mono text-[10px] uppercase text-[#6e7a73] font-semibold block">EU/Japan MRL Risk</span>
             <div class="flex items-baseline gap-1 mt-0.5">
-              <span class="font-headline text-2xl font-bold text-[#006c4a]" id="kpi-mrl">0.0%</span>
+              <span class="font-headline text-xl sm:text-2xl font-bold text-[#006c4a]" id="kpi-mrl">0.0%</span>
             </div>
             <span class="font-mono text-[10px] text-[#006c4a] font-medium block">Zero Residue Drift</span>
           </div>
@@ -182,7 +210,7 @@
           <div class="bg-[#f8fafc] border border-[#e2e8f0] rounded-lg p-2.5">
             <span class="font-mono text-[10px] uppercase text-[#6e7a73] font-semibold block">Infested Hotspot</span>
             <div class="flex items-baseline gap-1 mt-0.5">
-              <span class="font-headline text-xl font-bold text-[#ba1a1a]" id="kpi-infected-area">17,112 m²</span>
+              <span class="font-headline text-lg sm:text-xl font-bold text-[#ba1a1a]" id="kpi-infected-area">17,112 m²</span>
             </div>
             <span class="font-mono text-[10px] text-[#ba1a1a] font-medium block" id="kpi-pct-infected">5.3% of block</span>
           </div>
@@ -190,20 +218,20 @@
           <div class="bg-[#f8fafc] border border-[#e2e8f0] rounded-lg p-2.5">
             <span class="font-mono text-[10px] uppercase text-[#6e7a73] font-semibold block">Total Estate Block</span>
             <div class="flex items-baseline gap-1 mt-0.5">
-              <span class="font-headline text-xl font-bold text-[#131b2e]" id="kpi-total-area">32.0 ha</span>
+              <span class="font-headline text-lg sm:text-xl font-bold text-[#131b2e]" id="kpi-total-area">32.0 ha</span>
             </div>
             <span class="font-mono text-[10px] text-[#6e7a73] font-medium block">Cadastral Boundary</span>
           </div>
         </div>
 
-        <!-- Targeted Infection Card -->
+        <!-- Targeted Infestation Card -->
         <div class="border border-[#e2e8f0] rounded-lg p-3 bg-white shadow-sm space-y-2">
           <div class="flex items-center justify-between border-b pb-2">
             <div>
-              <span class="font-headline text-sm font-bold text-[#131b2e] block" id="card-section">SEC-04A (East Block)</span>
+              <span class="font-headline text-sm font-bold text-[#131b2e] block leading-tight" id="card-section">SEC-04A (East Block)</span>
               <span class="font-mono text-[11px] text-[#6e7a73]" id="card-estate-name">Chota Tingrai Tea Estate</span>
             </div>
-            <span class="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800" id="card-pest-badge">Looper Caterpillar</span>
+            <span class="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 shrink-0" id="card-pest-badge">Looper Caterpillar</span>
           </div>
 
           <div class="grid grid-cols-2 gap-x-2 gap-y-1 font-mono text-xs text-[#6e7a73]">
@@ -223,25 +251,25 @@
           <div class="bg-[#fffbeb] border border-[#f59e0b] rounded p-2 text-xs flex items-center justify-between">
             <div class="flex items-center gap-1.5 text-[#92400e]">
               <span class="material-symbols-outlined text-[18px]">alarm</span>
-              <span>Pre-Harvest Interval: <strong id="card-phi">5 Days Withholding</strong></span>
+              <span>PHI Restriction: <strong id="card-phi">5 Days Withholding</strong></span>
             </div>
             <span class="font-mono text-[10px] font-bold bg-[#fef3c7] px-1.5 py-0.5 rounded text-[#b45309]">EXPORT READY</span>
           </div>
         </div>
 
-        <!-- 46-Month Sentinel-2 Phenology Graph (2023 - 2026) -->
+        <!-- Multi-Year Phenology Graph (2023 - 2026) -->
         <div class="border border-[#e2e8f0] rounded-lg p-3 bg-white shadow-sm">
           <div class="flex items-center justify-between mb-1.5">
             <span class="font-headline text-xs font-bold text-[#131b2e] uppercase tracking-wider">Multi-Year Phenology</span>
             <span class="font-mono text-[10px] text-[#6e7a73]">2023 – 2026 Monthly</span>
           </div>
-          <div class="h-40 w-full">
+          <div class="h-36 sm:h-40 w-full">
             <canvas id="phenologyChart"></canvas>
           </div>
         </div>
 
-        <!-- Flight Telemetry Readout -->
-        <div class="border border-[#e2e8f0] rounded-lg p-3 bg-[#f8fafc] text-xs font-mono space-y-1">
+        <!-- Telemetry Summary -->
+        <div class="border border-[#e2e8f0] rounded-lg p-2.5 bg-[#f8fafc] text-xs font-mono space-y-1">
           <div class="flex justify-between text-[#6e7a73]">
             <span>SPRAY SWATH: <strong>3.0m</strong></span>
             <span>ALTITUDE: <strong id="card-flight-alt">2.5m AGL</strong></span>
@@ -254,48 +282,49 @@
 
       </div>
 
-      <div class="pt-3 border-t text-center font-mono text-[10px] text-[#6e7a73]">
+      <div class="p-2.5 border-t text-center font-mono text-[10px] text-[#6e7a73] bg-white">
         ChaiRakshak-AI • Built for TRA Tocklai NESFIC-1-07 Precision Agriculture
       </div>
     </aside>
 
-    <!-- RIGHT SATELLITE MAP DISPLAY -->
+    <!-- RIGHT / FULL MAP CONTAINER -->
     <main class="relative flex-1 h-full">
       <div id="map"></div>
 
-      <!-- Tactical Floating Status HUD -->
-      <div class="absolute top-4 left-4 z-10 bg-white/95 border border-[#e2e8f0] px-3 py-2 rounded-lg shadow-md font-mono text-xs space-y-1">
-        <div class="flex items-center gap-2">
+      <!-- Floating Position HUD -->
+      <div class="absolute top-3 left-3 z-10 bg-white/95 border border-[#e2e8f0] px-2.5 py-1.5 rounded-lg shadow-md font-mono text-xs space-y-0.5 backdrop-blur-sm">
+        <div class="flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-full bg-[#047857] animate-telemetry-pulse"></span>
-          <span class="font-bold text-[#131b2e]">Targeted Spot-Spray GIS Active</span>
+          <span class="font-bold text-[#131b2e]">Targeted Spot-Spray Active</span>
         </div>
-        <div class="text-[#6e7a73] text-[11px]" id="map-gis-ref">Center: 95.3621°E, 27.4497°N</div>
+        <div class="text-[#6e7a73] text-[10px] sm:text-[11px]" id="map-gis-ref">Center: 95.3621°E, 27.4497°N</div>
       </div>
 
-      <!-- Map Layer Toggles -->
-      <div class="absolute top-4 right-4 z-10 bg-white/95 border border-[#e2e8f0] p-3 rounded-lg shadow-md font-mono text-xs space-y-2">
-        <div class="font-bold text-[#131b2e] border-b pb-1">Flight Map Layers</div>
-        <label class="flex items-center gap-2 cursor-pointer select-none">
+      <!-- Floating Map Layer Toggles -->
+      <div class="absolute top-3 right-3 z-10 bg-white/95 border border-[#e2e8f0] p-2 sm:p-2.5 rounded-lg shadow-md font-mono text-[11px] sm:text-xs space-y-1.5 backdrop-blur-sm">
+        <div class="font-bold text-[#131b2e] border-b pb-0.5">Map Layers</div>
+        <label class="flex items-center gap-1.5 cursor-pointer select-none">
           <input type="checkbox" id="layer-hotspot" checked class="rounded text-[#ba1a1a] focus:ring-0">
-          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-[#ba1a1a] rounded"></span> Infested Spot Zone</span>
+          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-[#ba1a1a] rounded"></span> Infested Spot</span>
         </label>
-        <label class="flex items-center gap-2 cursor-pointer select-none">
+        <label class="flex items-center gap-1.5 cursor-pointer select-none">
           <input type="checkbox" id="layer-buffer" checked class="rounded text-[#047857] focus:ring-0">
-          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-[#047857] rounded border border-white"></span> 5m Safety Drift Buffer</span>
+          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-[#047857] rounded border border-white"></span> 5m Buffer</span>
         </label>
-        <label class="flex items-center gap-2 cursor-pointer select-none">
+        <label class="flex items-center gap-1.5 cursor-pointer select-none">
           <input type="checkbox" id="layer-waypoints" checked class="rounded text-[#0284c7] focus:ring-0">
-          <span class="flex items-center gap-1"><span class="w-2.5 h-0.5 bg-[#0284c7]"></span> UAV Spray Path Vector</span>
+          <span class="flex items-center gap-1"><span class="w-2.5 h-0.5 bg-[#0284c7]"></span> UAV Path</span>
         </label>
-        <label class="flex items-center gap-2 cursor-pointer select-none">
+        <label class="flex items-center gap-1.5 cursor-pointer select-none">
           <input type="checkbox" id="layer-estate" checked class="rounded text-white focus:ring-0">
-          <span class="flex items-center gap-1"><span class="w-2.5 h-0.5 border-t-2 border-dashed border-white"></span> Whole Estate Boundary</span>
+          <span class="flex items-center gap-1"><span class="w-2.5 h-0.5 border-t-2 border-dashed border-white"></span> Estate Line</span>
         </label>
       </div>
     </main>
+
   </div>
 
-  <!-- ================= SCRIPTS & SPATIAL ENGINE ================= -->
+  <!-- ================= SPATIAL DATA ENGINE & EVENT HANDLERS ================= -->
   <script>
     // --- 1. VERIFIED KML BOUNDARIES FOR ALL 10 TEA ESTATES ---
     const ESTATE_DATASTORE = [
@@ -534,7 +563,7 @@
     let currentEstate = ESTATE_DATASTORE[0];
     let CSV_DATA = [];
 
-    // --- 2. MAP INITIALIZATION ---
+    // --- 2. MAPLIBRE INITIALIZATION ---
     const map = new maplibregl.Map({
       container: 'map',
       style: {
@@ -553,7 +582,7 @@
       },
       center: [95.3621, 27.4497],
       zoom: 15.5,
-      pitch: 40,
+      pitch: 38,
       bearing: -10
     });
 
@@ -593,13 +622,13 @@
           legend: { position: 'top', labels: { boxWidth: 10, font: { size: 9, family: 'JetBrains Mono' } } }
         },
         scales: {
-          y: { min: 0.1, max: 0.9, ticks: { font: { size: 9, family: 'JetBrains Mono' } } },
+          y: { min: 0.1, max: 0.9, ticks: { font: { size: 8, family: 'JetBrains Mono' } } },
           x: { ticks: { font: { size: 8, family: 'JetBrains Mono' }, maxRotation: 45 } }
         }
       }
     });
 
-    // --- 4. DATA BUILDERS & MAP RENDERING ---
+    // --- 4. MAP LAYERS RENDERING ---
     function buildEstateGeoJSON() {
       return {
         type: 'FeatureCollection',
@@ -623,7 +652,7 @@
     }
 
     map.on('load', () => {
-      // 1. Whole Estate Boundary Source & Layers
+      // 1. Whole Estate Boundary (White Dashed Line)
       map.addSource('estate-boundary-src', { type: 'geojson', data: buildEstateGeoJSON() });
 
       map.addLayer({
@@ -647,7 +676,7 @@
         }
       });
 
-      // 2. Infested Spot Zone Source & Layers
+      // 2. Infested Spot Zone (Colored Treatment Area)
       map.addSource('hotspot-src', { type: 'geojson', data: buildHotspotGeoJSON() });
 
       map.addLayer({
@@ -731,7 +760,7 @@
       const coords = p.hotspot_coords;
       const cLon = coords.reduce((acc, pt) => acc + pt[0], 0) / coords.length;
       const cLat = coords.reduce((acc, pt) => acc + pt[1], 0) / coords.length;
-      map.flyTo({ center: [cLon, cLat], zoom: 15.6, pitch: 42, duration: 1800 });
+      map.flyTo({ center: [cLon, cLat], zoom: 15.6, pitch: 38, duration: 1800 });
 
       document.getElementById('map-gis-ref').innerText = `Center: ${cLon.toFixed(4)}°E, ${cLat.toFixed(4)}°N`;
 
@@ -742,7 +771,6 @@
     }
 
     function drawDriftBuffer(coords) {
-      // Calculate 5m buffer ring around hotspot
       const bufferOffset = 0.00035;
       const cLon = coords.reduce((acc, pt) => acc + pt[0], 0) / coords.length;
       const cLat = coords.reduce((acc, pt) => acc + pt[1], 0) / coords.length;
@@ -940,7 +968,33 @@
       a.click();
     });
 
-    // --- 7. WELCOME LOADER SEQUENCE LOGIC ---
+    // --- 7. MOBILE BOTTOM SHEET DRAWER CONTROLLER ---
+    const panel = document.getElementById('telemetry-panel');
+    const handle = document.getElementById('drawer-handle');
+    const toggleBtn = document.getElementById('btn-toggle-drawer');
+    const hintText = document.getElementById('drawer-hint-text');
+    let isExpanded = false;
+
+    function toggleMobileDrawer() {
+      if (window.innerWidth >= 1024) return;
+      isExpanded = !isExpanded;
+      if (isExpanded) {
+        panel.classList.remove('mobile-drawer-collapsed');
+        panel.classList.add('mobile-drawer-expanded');
+        hintText.innerText = 'Tap to collapse ▼';
+        document.getElementById('icon-toggle-drawer').innerText = 'map';
+      } else {
+        panel.classList.add('mobile-drawer-collapsed');
+        panel.classList.remove('mobile-drawer-expanded');
+        hintText.innerText = 'Tap to expand ▲';
+        document.getElementById('icon-toggle-drawer').innerText = 'dashboard';
+      }
+    }
+
+    handle.addEventListener('click', toggleMobileDrawer);
+    toggleBtn.addEventListener('click', toggleMobileDrawer);
+
+    // --- 8. WELCOME SEQUENCE LOADER SCRIPT ---
     window.addEventListener('DOMContentLoaded', () => {
       const splash = document.getElementById('splash-screen');
       const text = document.getElementById('splash-status-text');
@@ -965,10 +1019,10 @@
           clearInterval(interval);
           setTimeout(() => {
             splash.style.opacity = '0';
-            setTimeout(() => splash.style.display = 'none', 600);
-          }, 350);
+            setTimeout(() => splash.style.display = 'none', 500);
+          }, 300);
         }
-      }, 420);
+      }, 380);
     });
   </script>
 </body>
