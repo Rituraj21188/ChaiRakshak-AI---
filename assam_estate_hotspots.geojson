@@ -1,0 +1,606 @@
+{
+  "type": "FeatureCollection",
+  "name": "Upper_Assam_Real_Tea_Estates",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "district": "Tinsukia",
+        "estate": "Chota Tingrai Tea Estate",
+        "section": "SEC-04A",
+        "pest_type": "Looper Caterpillar",
+        "confidence": 0.96,
+        "area_sqm": 31200,
+        "baseline_ndvi": 0.82,
+        "current_ndvi": 0.44,
+        "chemical": "Emamectin Benzoate 5% SG",
+        "dosage_per_ha": "200 g",
+        "water_volume_l_ha": 25,
+        "phi_days": 5,
+        "mrl_safe": true,
+        "color": "#d97706"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              95.359158,
+              27.451278
+            ],
+            [
+              95.359047,
+              27.447718
+            ],
+            [
+              95.367192,
+              27.447475
+            ],
+            [
+              95.36732,
+              27.451078
+            ],
+            [
+              95.359158,
+              27.451278
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "district": "Jorhat",
+        "estate": "Deha Tea Estate",
+        "section": "SEC-11B",
+        "pest_type": "Red Spider Mite",
+        "confidence": 0.93,
+        "area_sqm": 8900,
+        "baseline_ndvi": 0.81,
+        "current_ndvi": 0.52,
+        "chemical": "Hexythiazox 5.45% EC",
+        "dosage_per_ha": "500 ml",
+        "water_volume_l_ha": 25,
+        "phi_days": 7,
+        "mrl_safe": true,
+        "color": "#e11d48"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              94.353508,
+              26.773335
+            ],
+            [
+              94.353623,
+              26.773332
+            ],
+            [
+              94.355954,
+              26.774234
+            ],
+            [
+              94.354688,
+              26.776415
+            ],
+            [
+              94.354339,
+              26.776156
+            ],
+            [
+              94.35244,
+              26.775374
+            ],
+            [
+              94.353508,
+              26.773335
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "district": "Jorhat",
+        "estate": "Green View Tea Estate",
+        "section": "SEC-02",
+        "pest_type": "Helopeltis theivora",
+        "confidence": 0.91,
+        "area_sqm": 24500,
+        "baseline_ndvi": 0.79,
+        "current_ndvi": 0.48,
+        "chemical": "Clothianidin 50% WDG",
+        "dosage_per_ha": "120 g",
+        "water_volume_l_ha": 30,
+        "phi_days": 10,
+        "mrl_safe": true,
+        "color": "#ea580c"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              94.284861,
+              26.732142
+            ],
+            [
+              94.284975,
+              26.729181
+            ],
+            [
+              94.287584,
+              26.729202
+            ],
+            [
+              94.287909,
+              26.725431
+            ],
+            [
+              94.291645,
+              26.725672
+            ],
+            [
+              94.291504,
+              26.731183
+            ],
+            [
+              94.289431,
+              26.731381
+            ],
+            [
+              94.287861,
+              26.731543
+            ],
+            [
+              94.286401,
+              26.731492
+            ],
+            [
+              94.284861,
+              26.732142
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "district": "Sivasagar",
+        "estate": "Hanumanbag Tea Estate",
+        "section": "SEC-08",
+        "pest_type": "Red Spider Mite",
+        "confidence": 0.95,
+        "area_sqm": 52000,
+        "baseline_ndvi": 0.83,
+        "current_ndvi": 0.55,
+        "chemical": "Spiromesifen 22.9% SC",
+        "dosage_per_ha": "400 ml",
+        "water_volume_l_ha": 25,
+        "phi_days": 7,
+        "mrl_safe": true,
+        "color": "#e11d48"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              94.716837,
+              26.865471
+            ],
+            [
+              94.721871,
+              26.870544
+            ],
+            [
+              94.715483,
+              26.875541
+            ],
+            [
+              94.710566,
+              26.87056
+            ],
+            [
+              94.716837,
+              26.865471
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "district": "Dibrugarh",
+        "estate": "Khowang Tea Estate",
+        "section": "SEC-14C",
+        "pest_type": "Looper Caterpillar",
+        "confidence": 0.94,
+        "area_sqm": 22100,
+        "baseline_ndvi": 0.84,
+        "current_ndvi": 0.42,
+        "chemical": "Flubendiamide 39.35% SC",
+        "dosage_per_ha": "100 ml",
+        "water_volume_l_ha": 25,
+        "phi_days": 7,
+        "mrl_safe": true,
+        "color": "#d97706"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              94.889134,
+              27.249207
+            ],
+            [
+              94.888488,
+              27.247932
+            ],
+            [
+              94.888522,
+              27.247713
+            ],
+            [
+              94.888671,
+              27.246294
+            ],
+            [
+              94.888931,
+              27.243494
+            ],
+            [
+              94.889385,
+              27.243558
+            ],
+            [
+              94.890475,
+              27.243892
+            ],
+            [
+              94.891774,
+              27.243981
+            ],
+            [
+              94.892811,
+              27.243267
+            ],
+            [
+              94.89271,
+              27.244281
+            ],
+            [
+              94.892285,
+              27.246081
+            ],
+            [
+              94.891828,
+              27.247728
+            ],
+            [
+              94.89144,
+              27.248335
+            ],
+            [
+              94.890845,
+              27.25011
+            ],
+            [
+              94.889552,
+              27.249878
+            ],
+            [
+              94.889134,
+              27.249207
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "district": "Sivasagar",
+        "estate": "Mohkhuti Tea Estate",
+        "section": "SEC-06A",
+        "pest_type": "Helopeltis theivora",
+        "confidence": 0.9,
+        "area_sqm": 28900,
+        "baseline_ndvi": 0.8,
+        "current_ndvi": 0.51,
+        "chemical": "Thiamethoxam 25% WG",
+        "dosage_per_ha": "100 g",
+        "water_volume_l_ha": 30,
+        "phi_days": 10,
+        "mrl_safe": true,
+        "color": "#ea580c"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              94.81002,
+              27.090194
+            ],
+            [
+              94.812649,
+              27.087841
+            ],
+            [
+              94.81592,
+              27.085739
+            ],
+            [
+              94.817466,
+              27.086977
+            ],
+            [
+              94.819751,
+              27.088684
+            ],
+            [
+              94.819086,
+              27.090277
+            ],
+            [
+              94.818605,
+              27.091398
+            ],
+            [
+              94.81513,
+              27.090575
+            ],
+            [
+              94.814041,
+              27.091971
+            ],
+            [
+              94.810665,
+              27.090104
+            ],
+            [
+              94.81002,
+              27.090194
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "district": "Golaghat/Jorhat",
+        "estate": "Naharbari Tea Estate",
+        "section": "SEC-19",
+        "pest_type": "Red Spider Mite",
+        "confidence": 0.94,
+        "area_sqm": 71000,
+        "baseline_ndvi": 0.82,
+        "current_ndvi": 0.57,
+        "chemical": "Hexythiazox 5.45% EC",
+        "dosage_per_ha": "500 ml",
+        "water_volume_l_ha": 25,
+        "phi_days": 7,
+        "mrl_safe": true,
+        "color": "#e11d48"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              94.301942,
+              26.639183
+            ],
+            [
+              94.313485,
+              26.635113
+            ],
+            [
+              94.315757,
+              26.640365
+            ],
+            [
+              94.3041,
+              26.644507
+            ],
+            [
+              94.301942,
+              26.639183
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "district": "Charaideo",
+        "estate": "Nahorhabi Tea Estate",
+        "section": "SEC-03D",
+        "pest_type": "Red Spider Mite",
+        "confidence": 0.92,
+        "area_sqm": 35400,
+        "baseline_ndvi": 0.81,
+        "current_ndvi": 0.56,
+        "chemical": "Hexythiazox 5.45% EC",
+        "dosage_per_ha": "500 ml",
+        "water_volume_l_ha": 25,
+        "phi_days": 7,
+        "mrl_safe": true,
+        "color": "#e11d48"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              94.858134,
+              26.997959
+            ],
+            [
+              94.859083,
+              26.998883
+            ],
+            [
+              94.858698,
+              27.001677
+            ],
+            [
+              94.852877,
+              27.000736
+            ],
+            [
+              94.851135,
+              27.000477
+            ],
+            [
+              94.850543,
+              27.000293
+            ],
+            [
+              94.84919,
+              26.999913
+            ],
+            [
+              94.847689,
+              26.999869
+            ],
+            [
+              94.849462,
+              26.996615
+            ],
+            [
+              94.850327,
+              26.996824
+            ],
+            [
+              94.851964,
+              26.997271
+            ],
+            [
+              94.852801,
+              26.99755
+            ],
+            [
+              94.853143,
+              26.997838
+            ],
+            [
+              94.853533,
+              26.997983
+            ],
+            [
+              94.858134,
+              26.997959
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "district": "Dibrugarh",
+        "estate": "Sepon Chah Bagicha",
+        "section": "SEC-07B",
+        "pest_type": "Helopeltis theivora",
+        "confidence": 0.93,
+        "area_sqm": 18200,
+        "baseline_ndvi": 0.8,
+        "current_ndvi": 0.49,
+        "chemical": "Clothianidin 50% WDG",
+        "dosage_per_ha": "120 g",
+        "water_volume_l_ha": 30,
+        "phi_days": 10,
+        "mrl_safe": true,
+        "color": "#ea580c"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              94.844708,
+              27.125326
+            ],
+            [
+              94.843517,
+              27.118327
+            ],
+            [
+              94.846588,
+              27.117904
+            ],
+            [
+              94.847345,
+              27.11929
+            ],
+            [
+              94.8498,
+              27.123048
+            ],
+            [
+              94.844708,
+              27.125326
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "district": "Dibrugarh",
+        "estate": "Umtara Chah Bagicha",
+        "section": "SEC-12",
+        "pest_type": "Looper Caterpillar",
+        "confidence": 0.95,
+        "area_sqm": 48000,
+        "baseline_ndvi": 0.83,
+        "current_ndvi": 0.45,
+        "chemical": "Emamectin Benzoate 5% SG",
+        "dosage_per_ha": "200 g",
+        "water_volume_l_ha": 25,
+        "phi_days": 5,
+        "mrl_safe": true,
+        "color": "#d97706"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              95.257141,
+              27.216204
+            ],
+            [
+              95.248877,
+              27.21612
+            ],
+            [
+              95.248964,
+              27.208723
+            ],
+            [
+              95.257198,
+              27.208849
+            ],
+            [
+              95.257141,
+              27.216204
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
