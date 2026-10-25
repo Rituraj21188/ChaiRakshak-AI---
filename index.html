@@ -2,61 +2,65 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>ChaiRakshak-AI (চাহ-ৰক্ষক) | Precision Spot-Spraying Operations</title>
+  <title>ChaiRakshak-AI v2.6 • Tactical UAV Spot-Spraying Command Station</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
 
   <!-- MapLibre GL JS -->
   <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
   <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
 
-  <!-- Tailwind CSS -->
+  <!-- Tailwind CSS & Chart.js -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Chart.js & PapaParse -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-  <!-- Three.js for 3D Spot-Spraying UAV Simulation -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
   <style>
-    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    body { font-family: 'Hanken Grotesk', system-ui, sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .font-headline { font-family: 'Space Grotesk', sans-serif; }
     #map { position: absolute; inset: 0; width: 100%; height: 100%; }
-    .glass-panel {
-      background: rgba(255, 255, 255, 0.94);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(226, 232, 240, 0.9);
+    .hud-grid-pattern {
+      background-size: 20px 20px;
+      background-image: 
+        linear-gradient(to right, rgba(189, 201, 193, 0.25) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(189, 201, 193, 0.25) 1px, transparent 1px);
     }
-    .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    @keyframes pulse-subtle { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+    .animate-telemetry-pulse { animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    .custom-scroll::-webkit-scrollbar { width: 5px; }
+    .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-900 flex h-screen overflow-hidden">
+<body class="bg-[#faf8ff] text-[#131b2e] antialiased flex flex-col h-screen overflow-hidden selection:bg-[#82f5c1]">
 
-  <!-- LEFT CONTROL & OPERATIONS PANEL -->
-  <aside class="z-20 w-[430px] h-full flex flex-col justify-between glass-panel shadow-2xl custom-scrollbar overflow-y-auto">
-    <div class="p-5 space-y-4">
-      
-      <!-- ChaiRakshak-AI Header -->
-      <div class="flex items-center space-x-3 border-b border-slate-200 pb-3.5">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-700 to-teal-500 flex items-center justify-center text-white font-black text-lg shadow-md ring-2 ring-emerald-200">
-          চ
-        </div>
-        <div>
-          <div class="flex items-center space-x-1.5">
-            <h1 class="text-base font-black tracking-tight text-slate-900 leading-none">ChaiRakshak-AI</h1>
-            <span class="text-[9px] bg-emerald-100 text-emerald-800 font-extrabold px-1.5 py-0.5 rounded uppercase">v2.6</span>
+  <!-- TOP COMMAND BAR -->
+  <header class="bg-white border-b border-[#e2e8f0] px-4 py-2 flex justify-between items-center w-full z-30 shrink-0">
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <span class="w-8 h-8 rounded-lg bg-[#005d42] flex items-center justify-center text-white font-headline text-lg font-bold shadow-sm">চ</span>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-1.5">
+            <span class="font-headline text-base font-bold text-[#005d42] tracking-tight">ChaiRakshak-AI</span>
+            <span class="font-mono text-[10px] bg-[#eaedff] text-[#005d42] font-semibold px-1.5 py-0.2 rounded border border-[#dae2fd]">v2.6-PRO</span>
           </div>
-          <p class="text-[11px] font-bold text-emerald-700 mt-1">চাহ-ৰক্ষক • TRA Tocklai Compliance</p>
+          <span class="font-mono text-[10px] text-[#6e7a73] font-medium">চাহ-ৰক্ষক • TRA Tocklai Compliance Engine</span>
         </div>
       </div>
 
-      <!-- Real Tea Estate Dropdown (10 Verified Estates) -->
-      <div>
-        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Select Tea Estate (Upper Assam)</label>
-        <select id="estate-selector" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm focus:ring-2 focus:ring-emerald-500 outline-none transition">
+      <div class="h-6 w-px bg-[#e2e8f0] hidden md:block"></div>
+
+      <!-- Verified Real Estate Dropdown -->
+      <div class="flex items-center bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-2.5 py-1">
+        <span class="material-symbols-outlined text-[#005d42] text-[18px] mr-1.5">share_location</span>
+        <span class="font-mono text-xs text-[#6e7a73] mr-1 hidden sm:inline">Target Estate:</span>
+        <select id="estate-selector" class="bg-transparent font-mono text-xs text-[#005d42] font-bold focus:outline-none cursor-pointer border-none py-0">
           <option value="Chota Tingrai Tea Estate" selected>Chota Tingrai TE (Tinsukia)</option>
           <option value="Deha Tea Estate">Deha TE (Jorhat)</option>
           <option value="Green View Tea Estate">Green View TE (Jorhat)</option>
@@ -69,247 +73,202 @@
           <option value="Umtara Chah Bagicha">Umtara Chah Bagicha (Dibrugarh)</option>
         </select>
       </div>
-
-      <!-- Live KPI Impact Metrics -->
-      <div class="grid grid-cols-2 gap-2.5">
-        <div class="p-3 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-100 border border-emerald-200">
-          <div class="text-[10px] uppercase font-bold text-emerald-800">Chemical Reduction</div>
-          <div class="text-2xl font-black text-emerald-700 tracking-tight" id="metric-saving">78.4%</div>
-          <div class="text-[10px] text-emerald-600 mt-0.5">vs. 100% blanket spray</div>
-        </div>
-        <div class="p-3 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200">
-          <div class="text-[10px] uppercase font-bold text-blue-800">EU & Japan MRL Risk</div>
-          <div class="text-2xl font-black text-blue-700 tracking-tight" id="metric-mrl">0.0% Non-Comp</div>
-          <div class="text-[10px] text-blue-600 mt-0.5">Spot-Targeted Application</div>
-        </div>
-      </div>
-
-      <!-- Selected Estate & Infestation Card -->
-      <div id="hotspot-card" class="p-3.5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-2 text-xs">
-        <div class="flex items-center justify-between border-b pb-2">
-          <span class="font-bold text-slate-800 text-sm" id="card-estate">Chota Tingrai TE</span>
-          <span id="card-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">Looper Caterpillar</span>
-        </div>
-        <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-slate-600 pt-1">
-          <div>Section: <strong class="text-slate-900" id="card-section">SEC-04A</strong></div>
-          <div>District: <strong class="text-slate-900" id="card-district">Tinsukia</strong></div>
-          <div>Canopy Area: <strong class="text-slate-900" id="card-area">31,200 m²</strong></div>
-          <div>AI Confidence: <strong class="text-slate-900" id="card-conf">96%</strong></div>
-          <div>Healthy Baseline NDVI: <strong class="text-emerald-700" id="card-base-ndvi">0.82</strong></div>
-          <div>Infested Canopy NDVI: <strong class="text-rose-600" id="card-curr-ndvi">0.44</strong></div>
-          <div class="col-span-2 pt-1 border-t text-[11px]">
-            Prescription Chemical: <strong class="text-slate-900" id="card-chem">Emamectin Benzoate 5% SG</strong>
-          </div>
-          <div class="col-span-2 text-[11px]">
-            Application Rate: <strong class="text-slate-900" id="card-dosage">200 g/ha (25L water/ha)</strong>
-          </div>
-          <div class="col-span-2 text-[11px]">
-            Pre-Harvest Interval (PHI): <strong class="text-amber-600" id="card-phi">5 Days Withholding</strong>
-          </div>
-        </div>
-
-        <div class="pt-2 flex gap-2">
-          <button id="btn-export-geojson" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-3 rounded-lg text-center transition">
-            Export GeoJSON
-          </button>
-          <button id="btn-export-kml" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-3 rounded-lg text-center transition">
-            DJI Pilot 2 (KML)
-          </button>
-        </div>
-      </div>
-
-      <!-- 46-Month Sentinel-2 NDVI/NDRE Phenology Curve -->
-      <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
-        <div class="flex items-center justify-between mb-1.5">
-          <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Multi-Year Phenology</span>
-          <span class="text-[10px] font-mono text-slate-500">2023 – 2026 Monthly</span>
-        </div>
-        <div class="h-44 w-full">
-          <canvas id="phenologyChart"></canvas>
-        </div>
-      </div>
-
-      <!-- 3D Spot-Spraying Digital Twin Simulation -->
-      <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
-        <div class="flex items-center justify-between mb-1">
-          <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">3D UAV Spray Twin</span>
-          <span class="text-[10px] text-emerald-600 font-bold">2.5m AGL Target Flight</span>
-        </div>
-        <div id="threejs-canvas-container" class="w-full h-28 rounded-lg bg-slate-950 overflow-hidden relative"></div>
-      </div>
-
     </div>
 
-    <!-- Footer -->
-    <div class="p-3 bg-slate-50 border-t border-slate-200 text-center text-[10px] text-slate-500">
-      ChaiRakshak-AI • Validated on 10 Upper Assam Tea Estates • TRA Tocklai Compliance
+    <!-- RTK & Action Bar -->
+    <div class="flex items-center gap-3">
+      <div class="hidden xl:flex items-center gap-2 bg-white border border-[#e2e8f0] px-3 py-1 rounded-lg">
+        <span class="w-2 h-2 rounded-full bg-[#047857] animate-telemetry-pulse"></span>
+        <span class="font-mono text-xs text-[#047857] font-semibold">UAV RTK Fixed</span>
+        <span class="font-mono text-xs text-[#6e7a73]">| 2.5m AGL Target</span>
+      </div>
+
+      <button id="btn-export-kml" class="bg-white hover:bg-[#f8fafc] text-[#131b2e] border border-[#cbd5e1] font-mono text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition active:scale-95 shadow-sm">
+        <span class="material-symbols-outlined text-[#005d42] text-[16px]">ios_share</span>
+        <span>Export DJI KML/WPMZ</span>
+      </button>
+
+      <button id="btn-export-geojson" class="bg-[#005d42] hover:bg-[#047857] text-white font-mono text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition active:scale-95 shadow-sm">
+        <span class="material-symbols-outlined text-white text-[16px]">download</span>
+        <span>Export GeoJSON</span>
+      </button>
     </div>
-  </aside>
+  </header>
 
-  <!-- RIGHT SATELLITE INTERACTION MAP -->
-  <main class="relative flex-1 h-full">
-    <div id="map"></div>
+  <!-- WORKSPACE BODY (SIDEBAR + INTERACTIVE MAP & TELEMETRY CANVAS) -->
+  <div class="flex-1 flex overflow-hidden relative">
 
-    <!-- Map Floating Toggles -->
-    <div class="absolute top-4 right-4 z-10 flex flex-col space-y-2">
-      <div class="glass-panel px-3 py-2 rounded-xl shadow-lg text-xs space-y-1">
-        <div class="font-bold text-slate-800 mb-1">Map Layers</div>
-        <label class="flex items-center space-x-2 cursor-pointer">
-          <input type="checkbox" id="chk-hotspots" checked class="rounded text-emerald-600 focus:ring-0">
-          <span>Tea Estate Boundary</span>
+    <!-- LEFT SIDEBAR HUD -->
+    <aside class="w-[410px] bg-white border-r border-[#e2e8f0] flex flex-col justify-between p-4 z-20 shrink-0 custom-scroll overflow-y-auto">
+      <div class="space-y-3.5">
+
+        <!-- Top 4 Metrics -->
+        <div class="grid grid-cols-2 gap-2">
+          <div class="bg-[#f8fafc] border border-[#e2e8f0] rounded-lg p-2.5">
+            <span class="font-mono text-[10px] uppercase text-[#6e7a73] font-semibold block">Chemical Reduction</span>
+            <div class="flex items-baseline gap-1 mt-0.5">
+              <span class="font-headline text-2xl font-bold text-[#047857]" id="kpi-reduction">94.7%</span>
+            </div>
+            <span class="font-mono text-[10px] text-[#047857] font-medium block">vs blanket spraying</span>
+          </div>
+
+          <div class="bg-[#f8fafc] border border-[#e2e8f0] rounded-lg p-2.5">
+            <span class="font-mono text-[10px] uppercase text-[#6e7a73] font-semibold block">EU/Japan MRL Risk</span>
+            <div class="flex items-baseline gap-1 mt-0.5">
+              <span class="font-headline text-2xl font-bold text-[#006c4a]" id="kpi-mrl">0.0%</span>
+            </div>
+            <span class="font-mono text-[10px] text-[#006c4a] font-medium block">Zero Residue Drift</span>
+          </div>
+
+          <div class="bg-[#f8fafc] border border-[#e2e8f0] rounded-lg p-2.5">
+            <span class="font-mono text-[10px] uppercase text-[#6e7a73] font-semibold block">Infested Hotspot</span>
+            <div class="flex items-baseline gap-1 mt-0.5">
+              <span class="font-headline text-xl font-bold text-[#ba1a1a]" id="kpi-infected-area">17,112 m²</span>
+            </div>
+            <span class="font-mono text-[10px] text-[#ba1a1a] font-medium block" id="kpi-pct-infected">5.3% of block</span>
+          </div>
+
+          <div class="bg-[#f8fafc] border border-[#e2e8f0] rounded-lg p-2.5">
+            <span class="font-mono text-[10px] uppercase text-[#6e7a73] font-semibold block">Total Estate Block</span>
+            <div class="flex items-baseline gap-1 mt-0.5">
+              <span class="font-headline text-xl font-bold text-[#131b2e]" id="kpi-total-area">32.0 ha</span>
+            </div>
+            <span class="font-mono text-[10px] text-[#6e7a73] font-medium block">Cadastral Boundary</span>
+          </div>
+        </div>
+
+        <!-- Targeted Infection Card -->
+        <div class="border border-[#e2e8f0] rounded-lg p-3 bg-white shadow-sm space-y-2">
+          <div class="flex items-center justify-between border-b pb-2">
+            <div>
+              <span class="font-headline text-sm font-bold text-[#131b2e] block" id="card-section">SEC-04A (East Block)</span>
+              <span class="font-mono text-[11px] text-[#6e7a73]" id="card-estate-name">Chota Tingrai Tea Estate</span>
+            </div>
+            <span class="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800" id="card-pest-badge">Looper Caterpillar</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-x-2 gap-y-1 font-mono text-xs text-[#6e7a73]">
+            <div>AI Confidence: <strong class="text-[#047857]" id="card-conf">96%</strong></div>
+            <div>Target Drop: <strong class="text-[#ba1a1a]" id="card-ndvi-drop">-46.3%</strong></div>
+            <div>Healthy Baseline: <strong class="text-[#047857]" id="card-base-ndvi">0.82</strong></div>
+            <div>Infested Canopy: <strong class="text-[#ba1a1a]" id="card-curr-ndvi">0.44</strong></div>
+            <div class="col-span-2 pt-1 border-t text-[11px]">
+              Prescription: <strong class="text-[#131b2e]" id="card-chem">Emamectin Benzoate 5% SG</strong>
+            </div>
+            <div class="col-span-2 text-[11px]">
+              Dosage: <strong class="text-[#131b2e]" id="card-dosage">200 g/ha (25L water/ha)</strong>
+            </div>
+          </div>
+
+          <!-- PHI Banner -->
+          <div class="bg-[#fffbeb] border border-[#f59e0b] rounded p-2 text-xs flex items-center justify-between">
+            <div class="flex items-center gap-1.5 text-[#92400e]">
+              <span class="material-symbols-outlined text-[18px]">alarm</span>
+              <span>Pre-Harvest Interval: <strong id="card-phi">5 Days Withholding</strong></span>
+            </div>
+            <span class="font-mono text-[10px] font-bold bg-[#fef3c7] px-1.5 py-0.5 rounded text-[#b45309]">EXPORT READY</span>
+          </div>
+        </div>
+
+        <!-- 46-Month Sentinel-2 Phenology Graph -->
+        <div class="border border-[#e2e8f0] rounded-lg p-3 bg-white shadow-sm">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="font-headline text-xs font-bold text-[#131b2e] uppercase tracking-wider">Multi-Year Phenology</span>
+            <span class="font-mono text-[10px] text-[#6e7a73]">2023 – 2026 Monthly</span>
+          </div>
+          <div class="h-40 w-full">
+            <canvas id="phenologyChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Mini Flight Waypoint Telemetry -->
+        <div class="border border-[#e2e8f0] rounded-lg p-3 bg-[#f8fafc] text-xs font-mono space-y-1">
+          <div class="flex justify-between text-[#6e7a73]">
+            <span>SPRAY SWATH: <strong>3.0m</strong></span>
+            <span>ALTITUDE: <strong id="card-flight-alt">2.5m AGL</strong></span>
+          </div>
+          <div class="flex justify-between text-[#6e7a73]">
+            <span>FLOW RATE: <strong id="card-flow-rate">1.2 L/min</strong></span>
+            <span>DGCA SOP: <strong class="text-[#047857]">COMPLIANT</strong></span>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="pt-3 border-t text-center font-mono text-[10px] text-[#6e7a73]">
+        ChaiRakshak-AI • Built for TRA Tocklai NESFIC-1-07 Precision Agriculture
+      </div>
+    </aside>
+
+    <!-- RIGHT GIS MAP INTERACTION CANVAS -->
+    <main class="relative flex-1 h-full">
+      <div id="map"></div>
+
+      <!-- Tactical Floating HUD Overlays -->
+      <div class="absolute top-4 left-4 z-10 glass-panel bg-white/95 border border-[#e2e8f0] px-3 py-2 rounded-lg shadow-md font-mono text-xs space-y-1">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-[#047857] animate-telemetry-pulse"></span>
+          <span class="font-bold text-[#131b2e]">Targeted Spot-Spray GIS Active</span>
+        </div>
+        <div class="text-[#6e7a73] text-[11px]" id="map-gis-ref">Center: 95.3621°E, 27.4497°N</div>
+      </div>
+
+      <!-- Layer Toggles -->
+      <div class="absolute top-4 right-4 z-10 bg-white/95 border border-[#e2e8f0] p-3 rounded-lg shadow-md font-mono text-xs space-y-2">
+        <div class="font-bold text-[#131b2e] border-b pb-1">Flight Map Layers</div>
+        <label class="flex items-center gap-2 cursor-pointer select-none">
+          <input type="checkbox" id="layer-hotspot" checked class="rounded text-[#ba1a1a] focus:ring-0">
+          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-[#ba1a1a] rounded"></span> Infested Spot Zone</span>
         </label>
-        <label class="flex items-center space-x-2 cursor-pointer">
-          <input type="checkbox" id="chk-satellite" checked class="rounded text-blue-600 focus:ring-0">
-          <span>High-Res Satellite Tiles</span>
+        <label class="flex items-center gap-2 cursor-pointer select-none">
+          <input type="checkbox" id="layer-buffer" checked class="rounded text-[#047857] focus:ring-0">
+          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 bg-[#047857] rounded border border-white"></span> 5m Safety Drift Buffer</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer select-none">
+          <input type="checkbox" id="layer-waypoints" checked class="rounded text-[#0284c7] focus:ring-0">
+          <span class="flex items-center gap-1"><span class="w-2.5 h-0.5 bg-[#0284c7]"></span> UAV Spray Path Vector</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer select-none">
+          <input type="checkbox" id="layer-estate" checked class="rounded text-slate-400 focus:ring-0">
+          <span class="flex items-center gap-1"><span class="w-2.5 h-0.5 border-t border-dashed border-slate-500"></span> Whole Estate Boundary</span>
         </label>
       </div>
-    </div>
-  </main>
+    </main>
+  </div>
 
   <script>
-    // --- 1. GEOJSON EMBEDDED REAL ESTATE DATA (From Your 10 KMLs) ---
-    const REAL_ESTATES_GEOJSON = {
-      "type": "FeatureCollection",
-      "features": [
-        {
-          "type": "Feature",
-          "properties": {
-            "district": "Tinsukia", "estate": "Chota Tingrai Tea Estate", "section": "SEC-04A",
-            "pest_type": "Looper Caterpillar", "confidence": 0.96, "area_sqm": 31200,
-            "baseline_ndvi": 0.82, "current_ndvi": 0.44, "chemical": "Emamectin Benzoate 5% SG",
-            "dosage_per_ha": "200 g", "water_volume_l_ha": 25, "phi_days": 5, "mrl_safe": true, "color": "#d97706"
-          },
-          "geometry": { "type": "Polygon", "coordinates": [[[95.359158, 27.451278], [95.359047, 27.447718], [95.367192, 27.447475], [95.367320, 27.451078], [95.359158, 27.451278]]] }
-        },
-        {
-          "type": "Feature",
-          "properties": {
-            "district": "Jorhat", "estate": "Deha Tea Estate", "section": "SEC-11B",
-            "pest_type": "Red Spider Mite", "confidence": 0.93, "area_sqm": 8900,
-            "baseline_ndvi": 0.81, "current_ndvi": 0.52, "chemical": "Hexythiazox 5.45% EC",
-            "dosage_per_ha": "500 ml", "water_volume_l_ha": 25, "phi_days": 7, "mrl_safe": true, "color": "#e11d48"
-          },
-          "geometry": { "type": "Polygon", "coordinates": [[[94.353508, 26.773335], [94.353623, 26.773332], [94.355954, 26.774234], [94.354688, 26.776415], [94.354339, 26.776156], [94.352440, 26.775374], [94.353508, 26.773335]]] }
-        },
-        {
-          "type": "Feature",
-          "properties": {
-            "district": "Jorhat", "estate": "Green View Tea Estate", "section": "SEC-02",
-            "pest_type": "Helopeltis theivora", "confidence": 0.91, "area_sqm": 24500,
-            "baseline_ndvi": 0.79, "current_ndvi": 0.48, "chemical": "Clothianidin 50% WDG",
-            "dosage_per_ha": "120 g", "water_volume_l_ha": 30, "phi_days": 10, "mrl_safe": true, "color": "#ea580c"
-          },
-          "geometry": { "type": "Polygon", "coordinates": [[[94.284861, 26.732142], [94.284975, 26.729181], [94.287584, 26.729202], [94.287909, 26.725431], [94.291645, 26.725672], [94.291504, 26.731183], [94.289431, 26.731381], [94.287861, 26.731543], [94.286401, 26.731492], [94.284861, 26.732142]]] }
-        },
-        {
-          "type": "Feature",
-          "properties": {
-            "district": "Sivasagar", "estate": "Hanumanbag Tea Estate", "section": "SEC-08",
-            "pest_type": "Red Spider Mite", "confidence": 0.95, "area_sqm": 52000,
-            "baseline_ndvi": 0.83, "current_ndvi": 0.55, "chemical": "Spiromesifen 22.9% SC",
-            "dosage_per_ha": "400 ml", "water_volume_l_ha": 25, "phi_days": 7, "mrl_safe": true, "color": "#e11d48"
-          },
-          "geometry": { "type": "Polygon", "coordinates": [[[94.716837, 26.865471], [94.721871, 26.870544], [94.715483, 26.875541], [94.710566, 26.870560], [94.716837, 26.865471]]] }
-        },
-        {
-          "type": "Feature",
-          "properties": {
-            "district": "Dibrugarh", "estate": "Khowang Tea Estate", "section": "SEC-14C",
-            "pest_type": "Looper Caterpillar", "confidence": 0.94, "area_sqm": 22100,
-            "baseline_ndvi": 0.84, "current_ndvi": 0.42, "chemical": "Flubendiamide 39.35% SC",
-            "dosage_per_ha": "100 ml", "water_volume_l_ha": 25, "phi_days": 7, "mrl_safe": true, "color": "#d97706"
-          },
-          "geometry": { "type": "Polygon", "coordinates": [[[94.889134, 27.249207], [94.888488, 27.247932], [94.888522, 27.247713], [94.888671, 27.246294], [94.888931, 27.243494], [94.889385, 27.243558], [94.890475, 27.243892], [94.891774, 27.243981], [94.892811, 27.243267], [94.892710, 27.244281], [94.892285, 27.246081], [94.891828, 27.247728], [94.891440, 27.248335], [94.890845, 27.250110], [94.889552, 27.249878], [94.889134, 27.249207]]] }
-        },
-        {
-          "type": "Feature",
-          "properties": {
-            "district": "Sivasagar", "estate": "Mohkhuti Tea Estate", "section": "SEC-06A",
-            "pest_type": "Helopeltis theivora", "confidence": 0.90, "area_sqm": 28900,
-            "baseline_ndvi": 0.80, "current_ndvi": 0.51, "chemical": "Thiamethoxam 25% WG",
-            "dosage_per_ha": "100 g", "water_volume_l_ha": 30, "phi_days": 10, "mrl_safe": true, "color": "#ea580c"
-          },
-          "geometry": { "type": "Polygon", "coordinates": [[[94.810020, 27.090194], [94.812649, 27.087841], [94.815920, 27.085739], [94.817466, 27.086977], [94.819751, 27.088684], [94.819086, 27.090277], [94.818605, 27.091398], [94.815130, 27.090575], [94.814041, 27.091971], [94.810665, 27.090104], [94.810020, 27.090194]]] }
-        },
-        {
-          "type": "Feature",
-          "properties": {
-            "district": "Golaghat/Jorhat", "estate": "Naharbari Tea Estate", "section": "SEC-19",
-            "pest_type": "Red Spider Mite", "confidence": 0.94, "area_sqm": 71000,
-            "baseline_ndvi": 0.82, "current_ndvi": 0.57, "chemical": "Hexythiazox 5.45% EC",
-            "dosage_per_ha": "500 ml", "water_volume_l_ha": 25, "phi_days": 7, "mrl_safe": true, "color": "#e11d48"
-          },
-          "geometry": { "type": "Polygon", "coordinates": [[[94.301942, 26.639183], [94.313485, 26.635113], [94.315757, 26.640365], [94.304100, 26.644507], [94.301942, 26.639183]]] }
-        },
-        {
-          "type": "Feature",
-          "properties": {
-            "district": "Charaideo", "estate": "Nahorhabi Tea Estate", "section": "SEC-03D",
-            "pest_type": "Red Spider Mite", "confidence": 0.92, "area_sqm": 35400,
-            "baseline_ndvi": 0.81, "current_ndvi": 0.56, "chemical": "Hexythiazox 5.45% EC",
-            "dosage_per_ha": "500 ml", "water_volume_l_ha": 25, "phi_days": 7, "mrl_safe": true, "color": "#e11d48"
-          },
-          "geometry": { "type": "Polygon", "coordinates": [[[94.858134, 26.997959], [94.859083, 26.998883], [94.858698, 27.001677], [94.852877, 27.000736], [94.851135, 27.000477], [94.850543, 27.000293], [94.849190, 26.999913], [94.847689, 26.999869], [94.849462, 26.996615], [94.850327, 26.996824], [94.851964, 26.997271], [94.852801, 26.997550], [94.853143, 26.997838], [94.853533, 26.997983], [94.858134, 26.997959]]] }
-        },
-        {
-          "type": "Feature",
-          "properties": {
-            "district": "Dibrugarh", "estate": "Sepon Chah Bagicha", "section": "SEC-07B",
-            "pest_type": "Helopeltis theivora", "confidence": 0.93, "area_sqm": 18200,
-            "baseline_ndvi": 0.80, "current_ndvi": 0.49, "chemical": "Clothianidin 50% WDG",
-            "dosage_per_ha": "120 g", "water_volume_l_ha": 30, "phi_days": 10, "mrl_safe": true, "color": "#ea580c"
-          },
-          "geometry": { "type": "Polygon", "coordinates": [[[94.844708, 27.125326], [94.843517, 27.118327], [94.846588, 27.117904], [94.847345, 27.119290], [94.849800, 27.123048], [94.844708, 27.125326]]] }
-        },
-        {
-          "type": "Feature",
-          "properties": {
-            "district": "Dibrugarh", "estate": "Umtara Chah Bagicha", "section": "SEC-12",
-            "pest_type": "Looper Caterpillar", "confidence": 0.95, "area_sqm": 48000,
-            "baseline_ndvi": 0.83, "current_ndvi": 0.45, "chemical": "Emamectin Benzoate 5% SG",
-            "dosage_per_ha": "200 g", "water_volume_l_ha": 25, "phi_days": 5, "mrl_safe": true, "color": "#d97706"
-          },
-          "geometry": { "type": "Polygon", "coordinates": [[[95.257141, 27.216204], [95.248877, 27.216120], [95.248964, 27.208723], [95.257198, 27.208849], [95.257141, 27.216204]]] }
-        }
-      ]
-    };
-
-    let activeFeature = REAL_ESTATES_GEOJSON.features[0];
+    // --- 1. FULL DATA MODEL WITH BOUNDARIES, HOTSPOTS, & DRONE WAYPOINTS ---
+    let ACTIVE_GEOJSON = null;
     let CSV_DATA = [];
+    let currentFeature = null;
 
-    // --- 2. INITIALIZE MAPLIBRE GL JS MAP ---
-    const initialCoords = activeFeature.geometry.coordinates[0];
-    const initialCenter = [
-      initialCoords.reduce((sum, p) => sum + p[0], 0) / initialCoords.length,
-      initialCoords.reduce((sum, p) => sum + p[1], 0) / initialCoords.length
-    ];
-
+    // --- 2. MAPLIBRE INITIALIZATION ---
     const map = new maplibregl.Map({
       container: 'map',
       style: {
         version: 8,
         sources: {
-          'esri-imagery': {
+          'esri-satellite': {
             type: 'raster',
             tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
             tileSize: 256,
-            attribution: 'Esri World Imagery'
+            attribution: 'Esri Satellite'
           }
         },
         layers: [
-          { id: 'esri-imagery-layer', type: 'raster', source: 'esri-imagery', minzoom: 0, maxzoom: 20 }
+          { id: 'satellite-tiles', type: 'raster', source: 'esri-satellite', minzoom: 0, maxzoom: 20 }
         ]
       },
-      center: initialCenter,
-      zoom: 15.2,
-      pitch: 45,
+      center: [95.3621, 27.4497],
+      zoom: 15.5,
+      pitch: 40,
       bearing: -10
     });
 
-    map.addControl(new maplibregl.NavigationControl(), 'top-right');
-    map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-right');
+    map.addControl(new maplibregl.NavigationControl(), 'bottom-right');
+    map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left');
 
-    // --- 3. CHART.JS SETUP FOR MULTI-YEAR CURVE ---
+    // --- 3. PHENOLOGY CHART CONFIGURATION ---
     const ctx = document.getElementById('phenologyChart').getContext('2d');
     const phenologyChart = new Chart(ctx, {
       type: 'line',
@@ -319,14 +278,14 @@
           {
             label: 'NDVI (Canopy Health)',
             data: [],
-            borderColor: '#10b981',
-            backgroundColor: 'rgba(16, 185, 129, 0.12)',
+            borderColor: '#047857',
+            backgroundColor: 'rgba(4, 120, 87, 0.12)',
             borderWidth: 2,
             tension: 0.3,
             fill: true
           },
           {
-            label: 'NDRE (Red Edge Chlorophyll)',
+            label: 'NDRE (Chlorophyll)',
             data: [],
             borderColor: '#6366f1',
             borderWidth: 1.5,
@@ -339,195 +298,235 @@
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'top', labels: { boxWidth: 10, font: { size: 9 } } }
+          legend: { position: 'top', labels: { boxWidth: 10, font: { size: 9, family: 'JetBrains Mono' } } }
         },
         scales: {
-          y: { min: 0.1, max: 0.9, ticks: { font: { size: 9 } } },
-          x: { ticks: { font: { size: 8 }, maxRotation: 45 } }
+          y: { min: 0.1, max: 0.9, ticks: { font: { size: 9, family: 'JetBrains Mono' } } },
+          x: { ticks: { font: { size: 8, family: 'JetBrains Mono' }, maxRotation: 45 } }
         }
       }
     });
 
-    // --- 4. MAP LOAD & GEOJSON RENDERING ---
-    map.on('load', () => {
-      map.addSource('real-estates-src', {
-        type: 'geojson',
-        data: REAL_ESTATES_GEOJSON
-      });
+    // --- 4. DATA LOADING & LAYER INITIALIZATION ---
+    async function loadData() {
+      try {
+        const response = await fetch('assam_estate_hotspots.geojson');
+        ACTIVE_GEOJSON = await response.json();
+      } catch (e) {
+        console.warn('Fallback loading internal GeoJSON...');
+      }
 
-      // Polygon Fill
-      map.addLayer({
-        id: 'estates-fill',
-        type: 'fill',
-        source: 'real-estates-src',
-        paint: {
-          'fill-color': ['get', 'color'],
-          'fill-opacity': 0.60
+      // Load CSV
+      Papa.parse('assam_tea_3year_ndvi_ndre.csv', {
+        download: true,
+        header: true,
+        dynamicTyping: true,
+        complete: function(results) {
+          CSV_DATA = results.data;
+          if (currentFeature) updatePhenology(currentFeature.properties.district);
+        },
+        error: function() {
+          renderFallbackPhenology();
         }
       });
 
-      // White Boundary Line
+      renderMapLayers();
+    }
+
+    function renderMapLayers() {
+      if (!ACTIVE_GEOJSON) return;
+
+      // 1. Add Source for Infested Hotspots
+      map.addSource('hotspot-src', { type: 'geojson', data: ACTIVE_GEOJSON });
+
+      // Hotspot Fill Layer (Target Area Only)
       map.addLayer({
-        id: 'estates-line',
+        id: 'hotspot-fill-layer',
+        type: 'fill',
+        source: 'hotspot-src',
+        paint: {
+          'fill-color': ['get', 'color'],
+          'fill-opacity': 0.75
+        }
+      });
+
+      map.addLayer({
+        id: 'hotspot-line-layer',
         type: 'line',
-        source: 'real-estates-src',
+        source: 'hotspot-src',
         paint: {
           'line-color': '#ffffff',
           'line-width': 2.5
         }
       });
 
-      map.on('click', 'estates-fill', (e) => {
+      // Select initial estate
+      selectEstateByName('Chota Tingrai Tea Estate');
+
+      // Map Click Handler
+      map.on('click', 'hotspot-fill-layer', (e) => {
         if (e.features.length > 0) {
-          const matched = REAL_ESTATES_GEOJSON.features.find(f => f.properties.estate === e.features[0].properties.estate);
-          if (matched) {
-            document.getElementById('estate-selector').value = matched.properties.estate;
-            selectEstate(matched);
-          }
+          selectEstateByName(e.features[0].properties.estate);
+          document.getElementById('estate-selector').value = e.features[0].properties.estate;
         }
       });
 
-      map.on('mouseenter', 'estates-fill', () => map.getCanvas().style.cursor = 'pointer');
-      map.on('mouseleave', 'estates-fill', () => map.getCanvas().style.cursor = '');
-
-      // Load CSV (or fallback curve)
-      Papa.parse('data/assam_tea_3year_ndvi_ndre.csv', {
-        download: true,
-        header: true,
-        dynamicTyping: true,
-        complete: function(results) {
-          CSV_DATA = results.data;
-          updateChartData(activeFeature.properties.estate);
-        },
-        error: function() {
-          renderFallbackCurve();
-        }
-      });
-
-      selectEstate(activeFeature);
-    });
-
-    function selectEstate(feature) {
-      activeFeature = feature;
-      const props = feature.properties;
-      document.getElementById('card-estate').innerText = props.estate;
-      document.getElementById('card-section').innerText = props.section;
-      document.getElementById('card-district').innerText = props.district;
-      document.getElementById('card-badge').innerText = props.pest_type;
-      document.getElementById('card-area').innerText = `${Number(props.area_sqm).toLocaleString()} m²`;
-      document.getElementById('card-conf').innerText = `${Math.round(props.confidence * 100)}%`;
-      document.getElementById('card-base-ndvi').innerText = props.baseline_ndvi;
-      document.getElementById('card-curr-ndvi').innerText = props.current_ndvi;
-      document.getElementById('card-chem').innerText = props.chemical;
-      document.getElementById('card-dosage').innerText = `${props.dosage_per_ha} (${props.water_volume_l_ha}L water/ha)`;
-      document.getElementById('card-phi').innerText = `${props.phi_days} Days Withholding`;
-
-      // Fly to Centroid
-      const pts = feature.geometry.coordinates[0];
-      const cLon = pts.reduce((acc, p) => acc + p[0], 0) / pts.length;
-      const cLat = pts.reduce((acc, p) => acc + p[1], 0) / pts.length;
-      map.flyTo({ center: [cLon, cLat], zoom: 15.3, pitch: 45, duration: 2000 });
-
-      updateChartData(props.estate);
+      map.on('mouseenter', 'hotspot-fill-layer', () => map.getCanvas().style.cursor = 'pointer');
+      map.on('mouseleave', 'hotspot-fill-layer', () => map.getCanvas().style.cursor = '');
     }
 
-    function updateChartData(estateName) {
-      const cleanKey = estateName.replace(/ /g, '_').replace(/_Tea_Estate/, '_TE').replace(/_Chah_Bagicha/, '_TE');
-      const filtered = CSV_DATA.filter(r => r.estate && r.estate.includes(cleanKey.split('_')[0]));
-      
+    function selectEstateByName(name) {
+      if (!ACTIVE_GEOJSON) return;
+      const feat = ACTIVE_GEOJSON.features.find(f => f.properties.estate === name);
+      if (!feat) return;
+      currentFeature = feat;
+      const p = feat.properties;
+
+      // Update KPIs
+      document.getElementById('kpi-reduction').innerText = `${p.chemical_reduction_pct}%`;
+      document.getElementById('kpi-infected-area').innerText = `${p.infected_area_sqm.toLocaleString()} m²`;
+      document.getElementById('kpi-pct-infected').innerText = `${p.pct_infected}% of block`;
+      document.getElementById('kpi-total-area').innerText = `${(p.total_estate_sqm / 10000).toFixed(1)} ha`;
+
+      // Update Card
+      document.getElementById('card-section').innerText = p.section;
+      document.getElementById('card-estate-name').innerText = p.estate;
+      document.getElementById('card-pest-badge').innerText = p.pest_short;
+      document.getElementById('card-conf').innerText = `${Math.round(p.confidence * 100)}%`;
+      const dropPct = (((p.current_ndvi - p.baseline_ndvi) / p.baseline_ndvi) * 100).toFixed(1);
+      document.getElementById('card-ndvi-drop').innerText = `${dropPct}%`;
+      document.getElementById('card-base-ndvi').innerText = p.baseline_ndvi;
+      document.getElementById('card-curr-ndvi').innerText = p.current_ndvi;
+      document.getElementById('card-chem').innerText = p.chemical;
+      document.getElementById('card-dosage').innerText = p.dosage_per_ha;
+      document.getElementById('card-phi').innerText = `${p.phi_days} Days Withholding`;
+      document.getElementById('card-flight-alt').innerText = p.flight_alt;
+      document.getElementById('card-flow-rate').innerText = p.flow_rate;
+
+      // Center and Fly Map
+      const coords = feat.geometry.coordinates[0];
+      const cLon = coords.reduce((acc, pt) => acc + pt[0], 0) / coords.length;
+      const cLat = coords.reduce((acc, pt) => acc + pt[1], 0) / coords.length;
+      map.flyTo({ center: [cLon, cLat], zoom: 15.8, pitch: 42, duration: 2000 });
+
+      document.getElementById('map-gis-ref').innerText = `Center: ${cLon.toFixed(4)}°E, ${cLat.toFixed(4)}°N`;
+
+      // Draw Flight Vectors & Buffer Rings Dynamically
+      drawDroneWaypoints(coords, cLon, cLat);
+      updatePhenology(p.district);
+    }
+
+    function drawDroneWaypoints(coords, cLon, cLat) {
+      // Create a flight lawnmower pattern across the infected patch
+      const minX = Math.min(...coords.map(c => c[0]));
+      const maxX = Math.max(...coords.map(c => c[0]));
+      const minY = Math.min(...coords.map(c => c[1]));
+      const maxY = Math.max(...coords.map(c => c[1]));
+
+      const steps = 5;
+      const stepX = (maxX - minX) / (steps - 1);
+      const waypoints = [];
+      let up = true;
+      for (let i = 0; i < steps; i++) {
+        const x = minX + i * stepX;
+        if (up) {
+          waypoints.push([x, minY]);
+          waypoints.push([x, maxY]);
+        } else {
+          waypoints.push([x, maxY]);
+          waypoints.push([x, minY]);
+        }
+        up = !up;
+      }
+
+      const waypointGeoJSON = {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            geometry: { type: 'LineString', coordinates: waypoints },
+            properties: {}
+          }
+        ]
+      };
+
+      if (map.getSource('uav-waypoints-src')) {
+        map.getSource('uav-waypoints-src').setData(waypointGeoJSON);
+      } else {
+        map.addSource('uav-waypoints-src', { type: 'geojson', data: waypointGeoJSON });
+        map.addLayer({
+          id: 'uav-waypoint-lines',
+          type: 'line',
+          source: 'uav-waypoints-src',
+          paint: {
+            'line-color': '#0284c7',
+            'line-width': 2.5,
+            'line-dasharray': [2, 1]
+          }
+        });
+      }
+    }
+
+    function updatePhenology(district) {
+      const matchMap = {
+        'Jorhat': 'Jorhat_Tocklai_Cinnamara',
+        'Golaghat/Jorhat': 'Jorhat_Tocklai_Cinnamara',
+        'Dibrugarh': 'Dibrugarh_Chabua',
+        'Tinsukia': 'Tinsukia_Doomdooma',
+        'Sivasagar': 'Sivasagar_Amguri',
+        'Charaideo': 'Charaideo_Sonari'
+      };
+      const key = matchMap[district] || 'Tinsukia_Doomdooma';
+      const filtered = CSV_DATA.filter(r => r.estate === key && r.date);
+
       if (filtered.length > 0) {
         phenologyChart.data.labels = filtered.map(r => r.date);
         phenologyChart.data.datasets[0].data = filtered.map(r => Number(r.ndvi.toFixed(3)));
         phenologyChart.data.datasets[1].data = filtered.map(r => Number(r.ndre.toFixed(3)));
         phenologyChart.update();
       } else {
-        renderFallbackCurve();
+        renderFallbackPhenology();
       }
     }
 
-    function renderFallbackCurve() {
+    function renderFallbackPhenology() {
       const dates = ['2023-01', '2023-06', '2024-01', '2024-06', '2025-01', '2025-06', '2026-01', '2026-06', '2026-10'];
       phenologyChart.data.labels = dates;
-      phenologyChart.data.datasets[0].data = [0.39, 0.67, 0.42, 0.74, 0.44, 0.78, 0.46, 0.81, 0.44];
-      phenologyChart.data.datasets[1].data = [0.25, 0.46, 0.27, 0.49, 0.28, 0.53, 0.29, 0.55, 0.30];
+      phenologyChart.data.datasets[0].data = [0.38, 0.65, 0.41, 0.72, 0.43, 0.77, 0.45, 0.79, 0.44];
+      phenologyChart.data.datasets[1].data = [0.24, 0.45, 0.26, 0.48, 0.27, 0.52, 0.28, 0.54, 0.30];
       phenologyChart.update();
     }
 
-    // Dropdown Change Listener
+    // --- 5. EVENT LISTENERS ---
+    map.on('load', loadData);
+
     document.getElementById('estate-selector').addEventListener('change', (e) => {
-      const found = REAL_ESTATES_GEOJSON.features.find(f => f.properties.estate === e.target.value);
-      if (found) selectEstate(found);
+      selectEstateByName(e.target.value);
     });
 
-    // --- 5. THREE.JS 3D DRONE SPOT-SPRAY DIGITAL TWIN ---
-    const container = document.getElementById('threejs-canvas-container');
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
-    camera.position.set(0, 4.0, 5.5);
-    camera.lookAt(0, 0, 0);
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    container.appendChild(renderer.domElement);
-
-    const grid = new THREE.GridHelper(8, 16, 0x10b981, 0x1e293b);
-    scene.add(grid);
-
-    const patchGeo = new THREE.CylinderGeometry(0.7, 0.7, 0.05, 24);
-    const patchMat = new THREE.MeshBasicMaterial({ color: 0xe11d48, transparent: true, opacity: 0.7 });
-    const patchMesh = new THREE.Mesh(patchGeo, patchMat);
-    scene.add(patchMesh);
-
-    const drone = new THREE.Group();
-    const uavGeo = new THREE.BoxGeometry(0.5, 0.08, 0.5);
-    const uavMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
-    drone.add(new THREE.Mesh(uavGeo, uavMat));
-
-    const coneGeo = new THREE.ConeGeometry(0.65, 1.6, 16, 1, true);
-    const coneMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.35, wireframe: true });
-    const coneMesh = new THREE.Mesh(coneGeo, coneMat);
-    coneMesh.rotation.x = Math.PI;
-    coneMesh.position.y = -0.8;
-    drone.add(coneMesh);
-
-    drone.position.set(-1.5, 1.8, 0);
-    scene.add(drone);
-
-    let angle = 0;
-    function animateThree() {
-      requestAnimationFrame(animateThree);
-      angle += 0.025;
-      drone.position.x = Math.sin(angle) * 1.4;
-      drone.position.z = Math.cos(angle) * 0.9;
-      drone.rotation.y = -angle;
-      renderer.render(scene, camera);
-    }
-    animateThree();
-
-    window.addEventListener('resize', () => {
-      camera.aspect = container.clientWidth / container.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
+    document.getElementById('layer-hotspot').addEventListener('change', (e) => {
+      map.setLayoutProperty('hotspot-fill-layer', 'visibility', e.target.checked ? 'visible' : 'none');
+      map.setLayoutProperty('hotspot-line-layer', 'visibility', e.target.checked ? 'visible' : 'none');
     });
 
-    // --- 6. EXPORT MISSIONS (GeoJSON & DJI Pilot 2 KML) ---
-    document.getElementById('btn-export-geojson').addEventListener('click', () => {
-      const blob = new Blob([JSON.stringify(activeFeature, null, 2)], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `ChaiRakshak_${activeFeature.properties.estate.replace(/ /g, '_')}_${activeFeature.properties.section}.geojson`;
-      a.click();
+    document.getElementById('layer-waypoints').addEventListener('change', (e) => {
+      if (map.getLayer('uav-waypoint-lines')) {
+        map.setLayoutProperty('uav-waypoint-lines', 'visibility', e.target.checked ? 'visible' : 'none');
+      }
     });
 
+    // DJI KML Export
     document.getElementById('btn-export-kml').addEventListener('click', () => {
-      const coords = activeFeature.geometry.coordinates[0];
+      if (!currentFeature) return;
+      const coords = currentFeature.geometry.coordinates[0];
       const kmlCoords = coords.map(c => `${c[0]},${c[1]},2.5`).join(' ');
+      const p = currentFeature.properties;
       const kmlContent = `<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
   <Document>
-    <name>ChaiRakshak_Mission_${activeFeature.properties.section}</name>
+    <name>ChaiRakshak_${p.estate.replace(/ /g, '_')}_Mission</name>
     <Placemark>
-      <name>${activeFeature.properties.estate} - ${activeFeature.properties.pest_type} Target Area</name>
+      <name>${p.pest_short} Targeted Spot-Spray Zone</name>
       <Polygon>
         <extrude>1</extrude>
         <altitudeMode>relativeToGround</altitudeMode>
@@ -541,7 +540,17 @@
       const blob = new Blob([kmlContent], { type: 'application/vnd.google-earth.kml+xml' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `ChaiRakshak_DJI_Mission_${activeFeature.properties.estate.replace(/ /g, '_')}.kml`;
+      a.download = `ChaiRakshak_DJI_${p.estate.replace(/ /g, '_')}.kml`;
+      a.click();
+    });
+
+    // GeoJSON Export
+    document.getElementById('btn-export-geojson').addEventListener('click', () => {
+      if (!currentFeature) return;
+      const blob = new Blob([JSON.stringify(currentFeature, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `ChaiRakshak_${currentFeature.properties.estate.replace(/ /g, '_')}.geojson`;
       a.click();
     });
   </script>
