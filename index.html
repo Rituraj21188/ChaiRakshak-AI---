@@ -21,7 +21,10 @@
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <style>
-    body { font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { 
+      font-family: 'Hanken Grotesk', system-ui, -apple-system, sans-serif; 
+      -webkit-tap-highlight-color: transparent; 
+    }
     .font-mono { font-family: 'JetBrains Mono', monospace; }
     .font-headline { font-family: 'Space Grotesk', sans-serif; }
     #map { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -50,6 +53,14 @@
     @keyframes spin-radar {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
+    }
+
+    /* Reliable Mobile Touch Selectors */
+    select.mobile-touch-select {
+      touch-action: manipulation;
+      -webkit-appearance: menulist;
+      appearance: menulist;
+      cursor: pointer;
     }
 
     /* Mobile Sheet Drawer Transitions */
@@ -105,9 +116,9 @@
   </div>
 
   <!-- ================= TOP RESPONSIVE HEADER ================= -->
-  <header class="bg-white border-b border-[#e2e8f0] px-3 sm:px-4 py-2 flex items-center justify-between w-full z-30 shrink-0">
+  <header class="bg-white border-b border-[#e2e8f0] px-3 sm:px-4 py-2 flex items-center justify-between w-full z-30 shrink-0 relative">
     <!-- Left: Branding & District/Estate Dropdown -->
-    <div class="flex items-center gap-2 sm:gap-4 overflow-hidden">
+    <div class="flex items-center gap-2 sm:gap-3.5">
       <div class="flex items-center gap-2 shrink-0">
         <span class="w-8 h-8 rounded-lg bg-[#005d42] flex items-center justify-center text-white font-headline text-lg font-bold shadow-sm">চ</span>
         <div class="flex flex-col">
@@ -115,26 +126,26 @@
             <span class="font-headline text-sm sm:text-base font-bold text-[#005d42] tracking-tight leading-tight">ChaiRakshak-AI</span>
             <span class="font-mono text-[9px] sm:text-[10px] bg-[#eaedff] text-[#005d42] font-semibold px-1 py-0.2 rounded border border-[#dae2fd]">v2.6</span>
           </div>
-          <span class="font-mono text-[9px] sm:text-[10px] text-[#6e7a73] truncate max-w-[150px] sm:max-w-none">TRA Tocklai Compliance</span>
+          <span class="font-mono text-[9px] sm:text-[10px] text-[#6e7a73]">TRA Tocklai SOPs</span>
         </div>
       </div>
 
-      <div class="h-6 w-px bg-[#e2e8f0] hidden md:block"></div>
+      <div class="h-6 w-px bg-[#e2e8f0] hidden sm:block"></div>
 
-      <!-- Estate Picker -->
-      <div class="flex items-center bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-2 py-1 max-w-[170px] sm:max-w-xs md:max-w-sm">
-        <span class="material-symbols-outlined text-[#005d42] text-[16px] sm:text-[18px] mr-1 shrink-0">share_location</span>
-        <select id="estate-selector" class="bg-transparent font-mono text-xs text-[#005d42] font-bold focus:outline-none cursor-pointer border-none py-0 w-full truncate">
-          <option value="Chota Tingrai Tea Estate" selected>Chota Tingrai TE (Tinsukia)</option>
+      <!-- Touch-Friendly Estate Dropdown -->
+      <div class="relative flex items-center bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-2 py-1 max-w-[165px] sm:max-w-xs md:max-w-sm shadow-sm">
+        <span class="material-symbols-outlined text-[#005d42] text-[18px] mr-1 shrink-0 pointer-events-none">share_location</span>
+        <select id="estate-selector" class="mobile-touch-select bg-transparent font-mono text-xs text-[#005d42] font-bold focus:outline-none border-none py-1.5 w-full pr-1">
+          <option value="Chota Tingrai Tea Estate" selected>Chota Tingrai (Tinsukia)</option>
           <option value="Deha Tea Estate">Deha TE (Jorhat)</option>
-          <option value="Green View Tea Estate">Green View TE (Jorhat)</option>
-          <option value="Hanumanbag Tea Estate">Hanumanbag TE (Sivasagar)</option>
-          <option value="Khowang Tea Estate">Khowang TE (Dibrugarh)</option>
-          <option value="Mohkhuti Tea Estate">Mohkhuti TE (Sivasagar)</option>
-          <option value="Naharbari Tea Estate">Naharbari TE (Golaghat/Jorhat)</option>
-          <option value="Nahorhabi Tea Estate">Nahorhabi TE (Charaideo)</option>
-          <option value="Sepon Chah Bagicha">Sepon Chah Bagicha (Dibrugarh)</option>
-          <option value="Umtara Chah Bagicha">Umtara Chah Bagicha (Dibrugarh)</option>
+          <option value="Green View Tea Estate">Green View (Jorhat)</option>
+          <option value="Hanumanbag Tea Estate">Hanumanbag (Sivasagar)</option>
+          <option value="Khowang Tea Estate">Khowang (Dibrugarh)</option>
+          <option value="Mohkhuti Tea Estate">Mohkhuti (Sivasagar)</option>
+          <option value="Naharbari Tea Estate">Naharbari (Golaghat)</option>
+          <option value="Nahorhabi Tea Estate">Nahorhabi (Charaideo)</option>
+          <option value="Sepon Chah Bagicha">Sepon (Dibrugarh)</option>
+          <option value="Umtara Chah Bagicha">Umtara (Dibrugarh)</option>
         </select>
       </div>
     </div>
@@ -162,7 +173,7 @@
       </button>
 
       <!-- Mobile Telemetry Drawer Toggle Button -->
-      <button id="btn-toggle-drawer" class="lg:hidden bg-[#f1f5f9] hover:bg-[#e2e8f0] p-1.5 rounded-lg text-[#005d42] flex items-center justify-center">
+      <button id="btn-toggle-drawer" class="lg:hidden bg-[#f1f5f9] hover:bg-[#e2e8f0] p-1.5 rounded-lg text-[#005d42] flex items-center justify-center border border-[#cbd5e1]" aria-label="Toggle Telemetry Drawer">
         <span class="material-symbols-outlined text-[20px]" id="icon-toggle-drawer">dashboard</span>
       </button>
     </div>
@@ -175,7 +186,7 @@
     <aside id="telemetry-panel" class="mobile-drawer-collapsed lg:transform-none fixed lg:static bottom-0 inset-x-0 lg:inset-auto z-20 w-full lg:w-[410px] max-h-[85vh] lg:max-h-full bg-white border-t lg:border-t-0 lg:border-r border-[#e2e8f0] flex flex-col justify-between shadow-2xl lg:shadow-none transition-transform duration-300 ease-in-out shrink-0">
       
       <!-- Mobile Drawer Handle Bar -->
-      <div id="drawer-handle" class="lg:hidden p-2.5 flex flex-col items-center justify-center border-b border-[#e2e8f0] cursor-pointer bg-[#faf8ff]">
+      <div id="drawer-handle" class="lg:hidden p-2.5 flex flex-col items-center justify-center border-b border-[#e2e8f0] cursor-pointer bg-[#faf8ff] active:bg-[#f1f5f9]">
         <div class="w-12 h-1.5 bg-[#cbd5e1] rounded-full mb-1"></div>
         <div class="flex items-center justify-between w-full px-2 text-xs font-mono">
           <span class="font-bold text-[#005d42] flex items-center gap-1">
@@ -188,6 +199,14 @@
 
       <!-- Scrollable Telemetry Content -->
       <div class="p-3 sm:p-4 space-y-3.5 custom-scroll overflow-y-auto">
+
+        <!-- Mobile Dedicated Estate Switcher Pills (Fast Touch Selection) -->
+        <div class="lg:hidden border border-[#e2e8f0] rounded-lg p-2.5 bg-[#f8fafc]">
+          <span class="font-mono text-[10px] uppercase text-[#6e7a73] font-bold block mb-1.5">Quick Location Selector:</span>
+          <div class="flex gap-1.5 overflow-x-auto pb-1 custom-scroll" id="mobile-estate-chips">
+            <!-- Chips rendered dynamically -->
+          </div>
+        </div>
 
         <!-- Top 4 KPIs Grid -->
         <div class="grid grid-cols-2 gap-2">
@@ -651,6 +670,28 @@
       };
     }
 
+    // Build Mobile Quick Switcher Chips
+    function buildMobileChips() {
+      const container = document.getElementById('mobile-estate-chips');
+      if (!container) return;
+      container.innerHTML = '';
+      ESTATE_DATASTORE.forEach((est) => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = `px-2.5 py-1 rounded-full text-xs font-mono font-semibold whitespace-nowrap border transition ${
+          est.name === currentEstate.name 
+            ? 'bg-[#005d42] text-white border-[#005d42]' 
+            : 'bg-white text-[#131b2e] border-[#cbd5e1] hover:bg-[#f1f5f9]'
+        }`;
+        chip.innerText = est.name.replace(' Tea Estate', '').replace(' Chah Bagicha', '');
+        chip.addEventListener('click', () => {
+          document.getElementById('estate-selector').value = est.name;
+          selectEstate(est);
+        });
+        container.appendChild(chip);
+      });
+    }
+
     map.on('load', () => {
       // 1. Whole Estate Boundary (White Dashed Line)
       map.addSource('estate-boundary-src', { type: 'geojson', data: buildEstateGeoJSON() });
@@ -699,6 +740,9 @@
         }
       });
 
+      // Render Mobile Quick Selector Chips
+      buildMobileChips();
+
       // Select initial estate
       selectEstate(currentEstate);
 
@@ -734,6 +778,15 @@
     function selectEstate(estate) {
       currentEstate = estate;
       const p = estate;
+
+      // Update Select Dropdown Value
+      const selector = document.getElementById('estate-selector');
+      if (selector && selector.value !== p.name) {
+        selector.value = p.name;
+      }
+
+      // Update Mobile Chips Active State
+      buildMobileChips();
 
       // Update KPIs
       document.getElementById('kpi-reduction').innerText = `${p.reduction}%`;
@@ -886,10 +939,15 @@
       phenologyChart.update();
     }
 
-    // --- 5. EVENT LISTENERS & LAYER TOGGLES ---
-    document.getElementById('estate-selector').addEventListener('change', (e) => {
-      const found = ESTATE_DATASTORE.find(item => item.name === e.target.value);
-      if (found) selectEstate(found);
+    // --- 5. EVENT LISTENERS & LAYER TOGGLES (MOBILE + DESKTOP RESILIENT) ---
+    const estateSelector = document.getElementById('estate-selector');
+    
+    // Bind both 'change' and 'input' to guarantee triggers on mobile touch wheels
+    ['change', 'input'].forEach(evtType => {
+      estateSelector.addEventListener(evtType, (e) => {
+        const found = ESTATE_DATASTORE.find(item => item.name === e.target.value);
+        if (found) selectEstate(found);
+      });
     });
 
     document.getElementById('layer-hotspot').addEventListener('change', (e) => {
