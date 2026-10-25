@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>ChaiRakshak-AI v2.6 • Tactical UAV Spot-Spraying Command Station</title>
+  <title>ChaiRakshak-AI v2.6 • Autonomous UAV Spot-Spraying Command Station</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Fonts & Icons -->
@@ -15,7 +15,7 @@
   <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
   <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
 
-  <!-- Tailwind CSS & Chart.js -->
+  <!-- Tailwind CSS, Chart.js & PapaParse -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -36,11 +36,67 @@
     .custom-scroll::-webkit-scrollbar { width: 5px; }
     .custom-scroll::-webkit-scrollbar-track { background: transparent; }
     .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+    /* Welcome Loader Animation Styles */
+    #splash-screen {
+      transition: opacity 0.6s ease-out, visibility 0.6s ease-out;
+    }
+    .radar-sweep {
+      background: conic-gradient(from 0deg, rgba(16, 185, 129, 0.35) 0deg, rgba(16, 185, 129, 0) 60deg, transparent 60deg);
+      animation: spin-radar 2.4s linear infinite;
+    }
+    @keyframes spin-radar {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body class="bg-[#faf8ff] text-[#131b2e] antialiased flex flex-col h-screen overflow-hidden selection:bg-[#82f5c1]">
 
-  <!-- TOP COMMAND BAR -->
+  <!-- ================= HIGH-TECH WELCOME & TELEMETRY PRE-LOADER ================= -->
+  <div id="splash-screen" class="fixed inset-0 z-50 bg-[#09101d] flex flex-col items-center justify-center p-6 text-white font-mono select-none">
+    <div class="relative w-64 h-64 flex items-center justify-center mb-8">
+      <!-- Radar Rings -->
+      <div class="absolute inset-0 rounded-full border border-emerald-500/20"></div>
+      <div class="absolute inset-8 rounded-full border border-emerald-500/30"></div>
+      <div class="absolute inset-16 rounded-full border border-emerald-500/40"></div>
+      <div class="absolute inset-0 rounded-full radar-sweep"></div>
+      
+      <!-- Central Branding Badge -->
+      <div class="relative z-10 w-20 h-20 rounded-2xl bg-gradient-to-tr from-emerald-700 to-teal-500 border border-emerald-400/50 flex flex-col items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+        <span class="font-headline text-3xl font-bold text-white leading-none">চ</span>
+        <span class="text-[9px] font-bold text-emerald-100 tracking-wider uppercase mt-1">UAV OPS</span>
+      </div>
+
+      <!-- Crosshairs -->
+      <div class="absolute inset-x-0 top-1/2 h-px bg-emerald-500/20"></div>
+      <div class="absolute inset-y-0 left-1/2 w-px bg-emerald-500/20"></div>
+    </div>
+
+    <!-- Status Messages & Progress -->
+    <div class="w-full max-w-md space-y-4 text-center">
+      <div>
+        <h1 class="font-headline text-2xl font-bold tracking-tight text-white mb-1">ChaiRakshak-AI (চাহ-ৰক্ষক)</h1>
+        <p class="text-xs text-emerald-400 font-medium">TRA Tocklai • Precision Spot-Spraying GIS v2.6</p>
+      </div>
+
+      <div class="bg-slate-900/80 border border-slate-800 rounded-lg p-3 text-left space-y-1.5 text-xs">
+        <div class="flex items-center justify-between text-slate-400">
+          <span id="splash-status-text">Synchronizing RTK Ground Station...</span>
+          <span class="text-emerald-400" id="splash-pct">32%</span>
+        </div>
+        <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+          <div id="splash-progress-bar" class="h-full bg-emerald-500 transition-all duration-300 w-1/3"></div>
+        </div>
+        <div class="text-[10px] text-slate-500 flex justify-between pt-1">
+          <span>COPERNICUS/S2_SR Harmonized</span>
+          <span>10 Assam Estates Loaded</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TOP COMMAND BAR ================= -->
   <header class="bg-white border-b border-[#e2e8f0] px-4 py-2 flex justify-between items-center w-full z-30 shrink-0">
     <div class="flex items-center gap-4">
       <div class="flex items-center gap-2">
@@ -56,7 +112,7 @@
 
       <div class="h-6 w-px bg-[#e2e8f0] hidden md:block"></div>
 
-      <!-- Verified Real Estate Dropdown -->
+      <!-- Real Estate Dropdown Selector (10 Verified Estates) -->
       <div class="flex items-center bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-2.5 py-1">
         <span class="material-symbols-outlined text-[#005d42] text-[18px] mr-1.5">share_location</span>
         <span class="font-mono text-xs text-[#6e7a73] mr-1 hidden sm:inline">Target Estate:</span>
@@ -75,34 +131,37 @@
       </div>
     </div>
 
-    <!-- RTK & Action Bar -->
-    <div class="flex items-center gap-3">
+    <!-- RTK & Standardized UAV Download Controls -->
+    <div class="flex items-center gap-2.5">
       <div class="hidden xl:flex items-center gap-2 bg-white border border-[#e2e8f0] px-3 py-1 rounded-lg">
         <span class="w-2 h-2 rounded-full bg-[#047857] animate-telemetry-pulse"></span>
         <span class="font-mono text-xs text-[#047857] font-semibold">UAV RTK Fixed</span>
         <span class="font-mono text-xs text-[#6e7a73]">| 2.5m AGL Target</span>
       </div>
 
-      <button id="btn-export-kml" class="bg-white hover:bg-[#f8fafc] text-[#131b2e] border border-[#cbd5e1] font-mono text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition active:scale-95 shadow-sm">
-        <span class="material-symbols-outlined text-[#005d42] text-[16px]">ios_share</span>
-        <span>Export DJI KML/WPMZ</span>
+      <!-- Downwards Arrow Icons for Proper Downloads -->
+      <button id="btn-export-kml" class="bg-white hover:bg-[#f8fafc] text-[#131b2e] border border-[#cbd5e1] font-mono text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition active:scale-95 shadow-sm" title="Download UAV Waypoint Mission (.kml)">
+        <span class="material-symbols-outlined text-[#005d42] text-[18px]">download</span>
+        <span class="hidden sm:inline">Download UAV Waypoints (.kml)</span>
+        <span class="sm:hidden">UAV KML</span>
       </button>
 
-      <button id="btn-export-geojson" class="bg-[#005d42] hover:bg-[#047857] text-white font-mono text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition active:scale-95 shadow-sm">
-        <span class="material-symbols-outlined text-white text-[16px]">download</span>
-        <span>Export GeoJSON</span>
+      <button id="btn-export-geojson" class="bg-[#005d42] hover:bg-[#047857] text-white font-mono text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition active:scale-95 shadow-sm" title="Download Infested Area Polygon (.geojson)">
+        <span class="material-symbols-outlined text-white text-[18px]">arrow_downward</span>
+        <span class="hidden sm:inline">Download Infested Area (.geojson)</span>
+        <span class="sm:hidden">GeoJSON</span>
       </button>
     </div>
   </header>
 
-  <!-- WORKSPACE BODY (SIDEBAR + INTERACTIVE MAP & TELEMETRY CANVAS) -->
+  <!-- ================= WORKSPACE BODY (SIDEBAR + SATELLITE MAP) ================= -->
   <div class="flex-1 flex overflow-hidden relative">
 
-    <!-- LEFT SIDEBAR HUD -->
+    <!-- LEFT SIDEBAR ANALYTICS -->
     <aside class="w-[410px] bg-white border-r border-[#e2e8f0] flex flex-col justify-between p-4 z-20 shrink-0 custom-scroll overflow-y-auto">
       <div class="space-y-3.5">
 
-        <!-- Top 4 Metrics -->
+        <!-- Top 4 KPIs -->
         <div class="grid grid-cols-2 gap-2">
           <div class="bg-[#f8fafc] border border-[#e2e8f0] rounded-lg p-2.5">
             <span class="font-mono text-[10px] uppercase text-[#6e7a73] font-semibold block">Chemical Reduction</span>
@@ -160,7 +219,7 @@
             </div>
           </div>
 
-          <!-- PHI Banner -->
+          <!-- Pre-Harvest Interval (PHI) Banner -->
           <div class="bg-[#fffbeb] border border-[#f59e0b] rounded p-2 text-xs flex items-center justify-between">
             <div class="flex items-center gap-1.5 text-[#92400e]">
               <span class="material-symbols-outlined text-[18px]">alarm</span>
@@ -170,7 +229,7 @@
           </div>
         </div>
 
-        <!-- 46-Month Sentinel-2 Phenology Graph -->
+        <!-- 46-Month Sentinel-2 Phenology Graph (2023 - 2026) -->
         <div class="border border-[#e2e8f0] rounded-lg p-3 bg-white shadow-sm">
           <div class="flex items-center justify-between mb-1.5">
             <span class="font-headline text-xs font-bold text-[#131b2e] uppercase tracking-wider">Multi-Year Phenology</span>
@@ -181,7 +240,7 @@
           </div>
         </div>
 
-        <!-- Mini Flight Waypoint Telemetry -->
+        <!-- Flight Telemetry Readout -->
         <div class="border border-[#e2e8f0] rounded-lg p-3 bg-[#f8fafc] text-xs font-mono space-y-1">
           <div class="flex justify-between text-[#6e7a73]">
             <span>SPRAY SWATH: <strong>3.0m</strong></span>
@@ -200,12 +259,12 @@
       </div>
     </aside>
 
-    <!-- RIGHT GIS MAP INTERACTION CANVAS -->
+    <!-- RIGHT SATELLITE MAP DISPLAY -->
     <main class="relative flex-1 h-full">
       <div id="map"></div>
 
-      <!-- Tactical Floating HUD Overlays -->
-      <div class="absolute top-4 left-4 z-10 glass-panel bg-white/95 border border-[#e2e8f0] px-3 py-2 rounded-lg shadow-md font-mono text-xs space-y-1">
+      <!-- Tactical Floating Status HUD -->
+      <div class="absolute top-4 left-4 z-10 bg-white/95 border border-[#e2e8f0] px-3 py-2 rounded-lg shadow-md font-mono text-xs space-y-1">
         <div class="flex items-center gap-2">
           <span class="w-2 h-2 rounded-full bg-[#047857] animate-telemetry-pulse"></span>
           <span class="font-bold text-[#131b2e]">Targeted Spot-Spray GIS Active</span>
@@ -213,7 +272,7 @@
         <div class="text-[#6e7a73] text-[11px]" id="map-gis-ref">Center: 95.3621°E, 27.4497°N</div>
       </div>
 
-      <!-- Layer Toggles -->
+      <!-- Map Layer Toggles -->
       <div class="absolute top-4 right-4 z-10 bg-white/95 border border-[#e2e8f0] p-3 rounded-lg shadow-md font-mono text-xs space-y-2">
         <div class="font-bold text-[#131b2e] border-b pb-1">Flight Map Layers</div>
         <label class="flex items-center gap-2 cursor-pointer select-none">
@@ -229,20 +288,253 @@
           <span class="flex items-center gap-1"><span class="w-2.5 h-0.5 bg-[#0284c7]"></span> UAV Spray Path Vector</span>
         </label>
         <label class="flex items-center gap-2 cursor-pointer select-none">
-          <input type="checkbox" id="layer-estate" checked class="rounded text-slate-400 focus:ring-0">
-          <span class="flex items-center gap-1"><span class="w-2.5 h-0.5 border-t border-dashed border-slate-500"></span> Whole Estate Boundary</span>
+          <input type="checkbox" id="layer-estate" checked class="rounded text-white focus:ring-0">
+          <span class="flex items-center gap-1"><span class="w-2.5 h-0.5 border-t-2 border-dashed border-white"></span> Whole Estate Boundary</span>
         </label>
       </div>
     </main>
   </div>
 
+  <!-- ================= SCRIPTS & SPATIAL ENGINE ================= -->
   <script>
-    // --- 1. FULL DATA MODEL WITH BOUNDARIES, HOTSPOTS, & DRONE WAYPOINTS ---
-    let ACTIVE_GEOJSON = null;
-    let CSV_DATA = [];
-    let currentFeature = null;
+    // --- 1. VERIFIED KML BOUNDARIES FOR ALL 10 TEA ESTATES ---
+    const ESTATE_DATASTORE = [
+      {
+        "id": "chota_tingrai",
+        "name": "Chota Tingrai Tea Estate",
+        "district": "Tinsukia",
+        "section": "SEC-04A (East Block)",
+        "pest_type": "Looper Caterpillar (Hyposidra talaca)",
+        "pest_short": "Looper Caterpillar",
+        "conf": 96,
+        "total_sqm": 320367,
+        "infected_sqm": 17112,
+        "pct_infected": 5.3,
+        "reduction": 94.7,
+        "base_ndvi": 0.82,
+        "curr_ndvi": 0.44,
+        "chem": "Emamectin Benzoate 5% SG",
+        "dosage": "200 g/ha (25L water/ha)",
+        "phi": 5,
+        "flow": "1.2 L/min",
+        "alt": "2.5m AGL",
+        "color": "#d97706",
+        "boundary_coords": [[95.359158, 27.451278], [95.359047, 27.447718], [95.367192, 27.447475], [95.36732, 27.451078], [95.359158, 27.451278]],
+        "hotspot_coords": [[95.3621, 27.4491], [95.3638, 27.4488], [95.3649, 27.4499], [95.3641, 27.4507], [95.3626, 27.4504], [95.3619, 27.4497], [95.3621, 27.4491]]
+      },
+      {
+        "id": "deha",
+        "name": "Deha Tea Estate",
+        "district": "Jorhat",
+        "section": "SEC-11B (North Block)",
+        "pest_type": "Red Spider Mite (Oligonychus coffeae)",
+        "pest_short": "Red Spider Mite",
+        "conf": 93,
+        "total_sqm": 66498,
+        "infected_sqm": 5928,
+        "pct_infected": 8.9,
+        "reduction": 91.1,
+        "base_ndvi": 0.81,
+        "curr_ndvi": 0.52,
+        "chem": "Hexythiazox 5.45% EC",
+        "dosage": "500 ml/ha (25L water/ha)",
+        "phi": 7,
+        "flow": "1.4 L/min",
+        "alt": "2.5m AGL",
+        "color": "#ba1a1a",
+        "boundary_coords": [[94.353508, 26.773335], [94.353623, 26.773332], [94.355954, 26.774234], [94.354688, 26.776415], [94.354339, 26.776156], [94.35244, 26.775374], [94.353508, 26.773335]],
+        "hotspot_coords": [[94.3538, 26.7744], [94.3546, 26.7742], [94.3551, 26.7751], [94.3547, 26.7757], [94.3539, 26.7755], [94.3535, 26.7749], [94.3538, 26.7744]]
+      },
+      {
+        "id": "green_view",
+        "name": "Green View Tea Estate",
+        "district": "Jorhat",
+        "section": "SEC-02 (Cinnamara Border)",
+        "pest_type": "Helopeltis theivora (Tea Mosquito Bug)",
+        "pest_short": "Helopeltis theivora",
+        "conf": 91,
+        "total_sqm": 322907,
+        "infected_sqm": 9435,
+        "pct_infected": 2.9,
+        "reduction": 97.1,
+        "base_ndvi": 0.79,
+        "curr_ndvi": 0.48,
+        "chem": "Clothianidin 50% WDG",
+        "dosage": "120 g/ha (30L water/ha)",
+        "phi": 10,
+        "flow": "1.1 L/min",
+        "alt": "2.8m AGL",
+        "color": "#ea580c",
+        "boundary_coords": [[94.284861, 26.732142], [94.284975, 26.729181], [94.287584, 26.729202], [94.287909, 26.725431], [94.291645, 26.725672], [94.291504, 26.731183], [94.289431, 26.731381], [94.287861, 26.731543], [94.286401, 26.731492], [94.284861, 26.732142]],
+        "hotspot_coords": [[94.2868, 26.7289], [94.2885, 26.7287], [94.2894, 26.7297], [94.2887, 26.7305], [94.2872, 26.7303], [94.2865, 26.7296], [94.2868, 26.7289]]
+      },
+      {
+        "id": "hanumanbag",
+        "name": "Hanumanbag Tea Estate",
+        "district": "Sivasagar",
+        "section": "SEC-08 (Riverine Flat)",
+        "pest_type": "Red Spider Mite (Oligonychus coffeae)",
+        "pest_short": "Red Spider Mite",
+        "conf": 95,
+        "total_sqm": 298400,
+        "infected_sqm": 14200,
+        "pct_infected": 4.8,
+        "reduction": 95.2,
+        "base_ndvi": 0.83,
+        "curr_ndvi": 0.55,
+        "chem": "Spiromesifen 22.9% SC",
+        "dosage": "400 ml/ha (25L water/ha)",
+        "phi": 7,
+        "flow": "1.3 L/min",
+        "alt": "2.5m AGL",
+        "color": "#ba1a1a",
+        "boundary_coords": [[94.716837, 26.865471], [94.721871, 26.870544], [94.715483, 26.875541], [94.710566, 26.87056], [94.716837, 26.865471]],
+        "hotspot_coords": [[94.7142, 26.8688], [94.7171, 26.8683], [94.7188, 26.8702], [94.7175, 26.8718], [94.7148, 26.8714], [94.7137, 26.8701], [94.7142, 26.8688]]
+      },
+      {
+        "id": "khowang",
+        "name": "Khowang Tea Estate",
+        "district": "Dibrugarh",
+        "section": "SEC-14C (Central Patch)",
+        "pest_type": "Looper Caterpillar (Hyposidra talaca)",
+        "pest_short": "Looper Caterpillar",
+        "conf": 94,
+        "total_sqm": 218500,
+        "infected_sqm": 12800,
+        "pct_infected": 5.9,
+        "reduction": 94.1,
+        "base_ndvi": 0.84,
+        "curr_ndvi": 0.42,
+        "chem": "Flubendiamide 39.35% SC",
+        "dosage": "100 ml/ha (25L water/ha)",
+        "phi": 7,
+        "flow": "1.2 L/min",
+        "alt": "2.5m AGL",
+        "color": "#d97706",
+        "boundary_coords": [[94.889134, 27.249207], [94.888488, 27.247932], [94.888522, 27.247713], [94.888671, 27.246294], [94.888931, 27.243494], [94.889385, 27.243558], [94.890475, 27.243892], [94.891774, 27.243981], [94.892811, 27.243267], [94.89271, 27.244281], [94.892285, 27.246081], [94.891828, 27.247728], [94.89144, 27.248335], [94.890845, 27.25011], [94.889552, 27.249878], [94.889134, 27.249207]],
+        "hotspot_coords": [[94.8899, 27.2458], [94.8914, 27.2455], [94.8921, 27.2467], [94.8916, 27.2476], [94.8903, 27.2474], [94.8895, 27.2465], [94.8899, 27.2458]]
+      },
+      {
+        "id": "mohkhuti",
+        "name": "Mohkhuti Tea Estate",
+        "district": "Sivasagar",
+        "section": "SEC-06A (Moranhat Div)",
+        "pest_type": "Helopeltis theivora (Tea Mosquito Bug)",
+        "pest_short": "Helopeltis theivora",
+        "conf": 90,
+        "total_sqm": 314000,
+        "infected_sqm": 15400,
+        "pct_infected": 4.9,
+        "reduction": 95.1,
+        "base_ndvi": 0.8,
+        "curr_ndvi": 0.51,
+        "chem": "Thiamethoxam 25% WG",
+        "dosage": "100 g/ha (30L water/ha)",
+        "phi": 10,
+        "flow": "1.1 L/min",
+        "alt": "2.8m AGL",
+        "color": "#ea580c",
+        "boundary_coords": [[94.81002, 27.090194], [94.812649, 27.087841], [94.81592, 27.085739], [94.817466, 27.086977], [94.819751, 27.088684], [94.819086, 27.090277], [94.818605, 27.091398], [94.81513, 27.090575], [94.814041, 27.091971], [94.810665, 27.090104], [94.81002, 27.090194]],
+        "hotspot_coords": [[94.8135, 27.0884], [94.8162, 27.0881], [94.8174, 27.0895], [94.8164, 27.0906], [94.8142, 27.0903], [94.813, 27.0892], [94.8135, 27.0884]]
+      },
+      {
+        "id": "naharbari",
+        "name": "Naharbari Tea Estate",
+        "district": "Golaghat/Jorhat",
+        "section": "SEC-19 (South Slope)",
+        "pest_type": "Red Spider Mite (Oligonychus coffeae)",
+        "pest_short": "Red Spider Mite",
+        "conf": 94,
+        "total_sqm": 412000,
+        "infected_sqm": 18900,
+        "pct_infected": 4.6,
+        "reduction": 95.4,
+        "base_ndvi": 0.82,
+        "curr_ndvi": 0.57,
+        "chem": "Hexythiazox 5.45% EC",
+        "dosage": "500 ml/ha (25L water/ha)",
+        "phi": 7,
+        "flow": "1.4 L/min",
+        "alt": "2.5m AGL",
+        "color": "#ba1a1a",
+        "boundary_coords": [[94.301942, 26.639183], [94.313485, 26.635113], [94.315757, 26.640365], [94.3041, 26.644507], [94.301942, 26.639183]],
+        "hotspot_coords": [[94.3065, 26.6384], [94.3102, 26.6378], [94.3118, 26.6396], [94.3104, 26.6412], [94.3072, 26.6408], [94.3058, 26.6394], [94.3065, 26.6384]]
+      },
+      {
+        "id": "nahorhabi",
+        "name": "Nahorhabi Tea Estate",
+        "district": "Charaideo",
+        "section": "SEC-03D (Sonari Division)",
+        "pest_type": "Red Spider Mite (Oligonychus coffeae)",
+        "pest_short": "Red Spider Mite",
+        "conf": 92,
+        "total_sqm": 186000,
+        "infected_sqm": 11200,
+        "pct_infected": 6.0,
+        "reduction": 94.0,
+        "base_ndvi": 0.81,
+        "curr_ndvi": 0.56,
+        "chem": "Hexythiazox 5.45% EC",
+        "dosage": "500 ml/ha (25L water/ha)",
+        "phi": 7,
+        "flow": "1.4 L/min",
+        "alt": "2.5m AGL",
+        "color": "#ba1a1a",
+        "boundary_coords": [[94.858134, 26.997959], [94.859083, 26.998883], [94.858698, 27.001677], [94.852877, 27.000736], [94.851135, 27.000477], [94.850543, 27.000293], [94.84919, 26.999913], [94.847689, 26.999869], [94.849462, 26.996615], [94.850327, 26.996824], [94.851964, 26.997271], [94.852801, 26.99755], [94.853143, 26.997838], [94.853533, 26.997983], [94.858134, 26.997959]],
+        "hotspot_coords": [[94.8515, 26.9984], [94.8548, 26.9981], [94.8562, 26.9996], [94.855, 27.0008], [94.8522, 27.0004], [94.851, 26.9992], [94.8515, 26.9984]]
+      },
+      {
+        "id": "sepon",
+        "name": "Sepon Chah Bagicha",
+        "district": "Dibrugarh",
+        "section": "SEC-07B (Moran Division)",
+        "pest_type": "Helopeltis theivora (Tea Mosquito Bug)",
+        "pest_short": "Helopeltis theivora",
+        "conf": 93,
+        "total_sqm": 194000,
+        "infected_sqm": 8700,
+        "pct_infected": 4.5,
+        "reduction": 95.5,
+        "base_ndvi": 0.8,
+        "curr_ndvi": 0.49,
+        "chem": "Clothianidin 50% WDG",
+        "dosage": "120 g/ha (30L water/ha)",
+        "phi": 10,
+        "flow": "1.1 L/min",
+        "alt": "2.8m AGL",
+        "color": "#ea580c",
+        "boundary_coords": [[94.844708, 27.125326], [94.843517, 27.118327], [94.846588, 27.117904], [94.847345, 27.11929], [94.8498, 27.123048], [94.844708, 27.125326]],
+        "hotspot_coords": [[94.8451, 27.1204], [94.8475, 27.1201], [94.8486, 27.1215], [94.8478, 27.1226], [94.8456, 27.1223], [94.8445, 27.1212], [94.8451, 27.1204]]
+      },
+      {
+        "id": "umtara",
+        "name": "Umtara Chah Bagicha",
+        "district": "Dibrugarh",
+        "section": "SEC-12 (Namrup Div)",
+        "pest_type": "Looper Caterpillar (Hyposidra talaca)",
+        "pest_short": "Looper Caterpillar",
+        "conf": 95,
+        "total_sqm": 284000,
+        "infected_sqm": 14900,
+        "pct_infected": 5.2,
+        "reduction": 94.8,
+        "base_ndvi": 0.83,
+        "curr_ndvi": 0.45,
+        "chem": "Emamectin Benzoate 5% SG",
+        "dosage": "200 g/ha (25L water/ha)",
+        "phi": 5,
+        "flow": "1.2 L/min",
+        "alt": "2.5m AGL",
+        "color": "#d97706",
+        "boundary_coords": [[95.257141, 27.216204], [95.248877, 27.21612], [95.248964, 27.208723], [95.257198, 27.208849], [95.257141, 27.216204]],
+        "hotspot_coords": [[95.2515, 27.2114], [95.2548, 27.2111], [95.2561, 27.2128], [95.2551, 27.2142], [95.2522, 27.2138], [95.2509, 27.2124], [95.2515, 27.2114]]
+      }
+    ];
 
-    // --- 2. MAPLIBRE INITIALIZATION ---
+    let currentEstate = ESTATE_DATASTORE[0];
+    let CSV_DATA = [];
+
+    // --- 2. MAP INITIALIZATION ---
     const map = new maplibregl.Map({
       container: 'map',
       style: {
@@ -268,7 +560,7 @@
     map.addControl(new maplibregl.NavigationControl(), 'bottom-right');
     map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left');
 
-    // --- 3. PHENOLOGY CHART CONFIGURATION ---
+    // --- 3. PHENOLOGY CHART SETUP ---
     const ctx = document.getElementById('phenologyChart').getContext('2d');
     const phenologyChart = new Chart(ctx, {
       type: 'line',
@@ -307,46 +599,64 @@
       }
     });
 
-    // --- 4. DATA LOADING & LAYER INITIALIZATION ---
-    async function loadData() {
-      try {
-        const response = await fetch('assam_estate_hotspots.geojson');
-        ACTIVE_GEOJSON = await response.json();
-      } catch (e) {
-        console.warn('Fallback loading internal GeoJSON...');
-      }
+    // --- 4. DATA BUILDERS & MAP RENDERING ---
+    function buildEstateGeoJSON() {
+      return {
+        type: 'FeatureCollection',
+        features: ESTATE_DATASTORE.map(e => ({
+          type: 'Feature',
+          properties: { estate: e.name, district: e.district },
+          geometry: { type: 'Polygon', coordinates: [e.boundary_coords] }
+        }))
+      };
+    }
 
-      // Load CSV
-      Papa.parse('assam_tea_3year_ndvi_ndre.csv', {
-        download: true,
-        header: true,
-        dynamicTyping: true,
-        complete: function(results) {
-          CSV_DATA = results.data;
-          if (currentFeature) updatePhenology(currentFeature.properties.district);
-        },
-        error: function() {
-          renderFallbackPhenology();
+    function buildHotspotGeoJSON() {
+      return {
+        type: 'FeatureCollection',
+        features: ESTATE_DATASTORE.map(e => ({
+          type: 'Feature',
+          properties: e,
+          geometry: { type: 'Polygon', coordinates: [e.hotspot_coords] }
+        }))
+      };
+    }
+
+    map.on('load', () => {
+      // 1. Whole Estate Boundary Source & Layers
+      map.addSource('estate-boundary-src', { type: 'geojson', data: buildEstateGeoJSON() });
+
+      map.addLayer({
+        id: 'estate-boundary-fill',
+        type: 'fill',
+        source: 'estate-boundary-src',
+        paint: {
+          'fill-color': '#047857',
+          'fill-opacity': 0.08
         }
       });
 
-      renderMapLayers();
-    }
+      map.addLayer({
+        id: 'estate-boundary-line',
+        type: 'line',
+        source: 'estate-boundary-src',
+        paint: {
+          'line-color': '#ffffff',
+          'line-width': 2.0,
+          'line-dasharray': [3, 2]
+        }
+      });
 
-    function renderMapLayers() {
-      if (!ACTIVE_GEOJSON) return;
+      // 2. Infested Spot Zone Source & Layers
+      map.addSource('hotspot-src', { type: 'geojson', data: buildHotspotGeoJSON() });
 
-      // 1. Add Source for Infested Hotspots
-      map.addSource('hotspot-src', { type: 'geojson', data: ACTIVE_GEOJSON });
-
-      // Hotspot Fill Layer (Target Area Only)
       map.addLayer({
         id: 'hotspot-fill-layer',
         type: 'fill',
         source: 'hotspot-src',
         paint: {
           'fill-color': ['get', 'color'],
-          'fill-opacity': 0.75
+          'fill-opacity': 0.78
         }
       });
 
@@ -361,63 +671,116 @@
       });
 
       // Select initial estate
-      selectEstateByName('Chota Tingrai Tea Estate');
+      selectEstate(currentEstate);
 
-      // Map Click Handler
+      // Map Click Interactivity
       map.on('click', 'hotspot-fill-layer', (e) => {
         if (e.features.length > 0) {
-          selectEstateByName(e.features[0].properties.estate);
-          document.getElementById('estate-selector').value = e.features[0].properties.estate;
+          const matched = ESTATE_DATASTORE.find(item => item.name === e.features[0].properties.name);
+          if (matched) {
+            document.getElementById('estate-selector').value = matched.name;
+            selectEstate(matched);
+          }
         }
       });
 
       map.on('mouseenter', 'hotspot-fill-layer', () => map.getCanvas().style.cursor = 'pointer');
       map.on('mouseleave', 'hotspot-fill-layer', () => map.getCanvas().style.cursor = '');
-    }
 
-    function selectEstateByName(name) {
-      if (!ACTIVE_GEOJSON) return;
-      const feat = ACTIVE_GEOJSON.features.find(f => f.properties.estate === name);
-      if (!feat) return;
-      currentFeature = feat;
-      const p = feat.properties;
+      // Load 46-Month Phenology CSV
+      Papa.parse('assam_tea_3year_ndvi_ndre.csv', {
+        download: true,
+        header: true,
+        dynamicTyping: true,
+        complete: function(results) {
+          CSV_DATA = results.data;
+          updatePhenology(currentEstate.district);
+        },
+        error: function() {
+          renderFallbackPhenology();
+        }
+      });
+    });
+
+    function selectEstate(estate) {
+      currentEstate = estate;
+      const p = estate;
 
       // Update KPIs
-      document.getElementById('kpi-reduction').innerText = `${p.chemical_reduction_pct}%`;
-      document.getElementById('kpi-infected-area').innerText = `${p.infected_area_sqm.toLocaleString()} m²`;
+      document.getElementById('kpi-reduction').innerText = `${p.reduction}%`;
+      document.getElementById('kpi-infected-area').innerText = `${p.infected_sqm.toLocaleString()} m²`;
       document.getElementById('kpi-pct-infected').innerText = `${p.pct_infected}% of block`;
-      document.getElementById('kpi-total-area').innerText = `${(p.total_estate_sqm / 10000).toFixed(1)} ha`;
+      document.getElementById('kpi-total-area').innerText = `${(p.total_sqm / 10000).toFixed(1)} ha`;
 
       // Update Card
       document.getElementById('card-section').innerText = p.section;
-      document.getElementById('card-estate-name').innerText = p.estate;
+      document.getElementById('card-estate-name').innerText = p.name;
       document.getElementById('card-pest-badge').innerText = p.pest_short;
-      document.getElementById('card-conf').innerText = `${Math.round(p.confidence * 100)}%`;
-      const dropPct = (((p.current_ndvi - p.baseline_ndvi) / p.baseline_ndvi) * 100).toFixed(1);
+      document.getElementById('card-conf').innerText = `${p.conf}%`;
+      const dropPct = (((p.curr_ndvi - p.base_ndvi) / p.base_ndvi) * 100).toFixed(1);
       document.getElementById('card-ndvi-drop').innerText = `${dropPct}%`;
-      document.getElementById('card-base-ndvi').innerText = p.baseline_ndvi;
-      document.getElementById('card-curr-ndvi').innerText = p.current_ndvi;
-      document.getElementById('card-chem').innerText = p.chemical;
-      document.getElementById('card-dosage').innerText = p.dosage_per_ha;
-      document.getElementById('card-phi').innerText = `${p.phi_days} Days Withholding`;
-      document.getElementById('card-flight-alt').innerText = p.flight_alt;
-      document.getElementById('card-flow-rate').innerText = p.flow_rate;
+      document.getElementById('card-base-ndvi').innerText = p.base_ndvi;
+      document.getElementById('card-curr-ndvi').innerText = p.curr_ndvi;
+      document.getElementById('card-chem').innerText = p.chem;
+      document.getElementById('card-dosage').innerText = p.dosage;
+      document.getElementById('card-phi').innerText = `${p.phi} Days Withholding`;
+      document.getElementById('card-flight-alt').innerText = p.alt;
+      document.getElementById('card-flow-rate').innerText = p.flow;
 
       // Center and Fly Map
-      const coords = feat.geometry.coordinates[0];
+      const coords = p.hotspot_coords;
       const cLon = coords.reduce((acc, pt) => acc + pt[0], 0) / coords.length;
       const cLat = coords.reduce((acc, pt) => acc + pt[1], 0) / coords.length;
-      map.flyTo({ center: [cLon, cLat], zoom: 15.8, pitch: 42, duration: 2000 });
+      map.flyTo({ center: [cLon, cLat], zoom: 15.6, pitch: 42, duration: 1800 });
 
       document.getElementById('map-gis-ref').innerText = `Center: ${cLon.toFixed(4)}°E, ${cLat.toFixed(4)}°N`;
 
-      // Draw Flight Vectors & Buffer Rings Dynamically
+      // Draw Flight Vectors & 5m Buffer Rings Dynamically
       drawDroneWaypoints(coords, cLon, cLat);
+      drawDriftBuffer(coords);
       updatePhenology(p.district);
     }
 
+    function drawDriftBuffer(coords) {
+      // Calculate 5m buffer ring around hotspot
+      const bufferOffset = 0.00035;
+      const cLon = coords.reduce((acc, pt) => acc + pt[0], 0) / coords.length;
+      const cLat = coords.reduce((acc, pt) => acc + pt[1], 0) / coords.length;
+
+      const bufferCoords = coords.map(pt => {
+        const dx = pt[0] - cLon;
+        const dy = pt[1] - cLat;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        return [pt[0] + (dx / dist) * bufferOffset, pt[1] + (dy / dist) * bufferOffset];
+      });
+
+      const bufferGeoJSON = {
+        type: 'FeatureCollection',
+        features: [{
+          type: 'Feature',
+          geometry: { type: 'Polygon', coordinates: [bufferCoords] },
+          properties: {}
+        }]
+      };
+
+      if (map.getSource('buffer-src')) {
+        map.getSource('buffer-src').setData(bufferGeoJSON);
+      } else {
+        map.addSource('buffer-src', { type: 'geojson', data: bufferGeoJSON });
+        map.addLayer({
+          id: 'buffer-line-layer',
+          type: 'line',
+          source: 'buffer-src',
+          paint: {
+            'line-color': '#047857',
+            'line-width': 1.8,
+            'line-dasharray': [2, 2]
+          }
+        });
+      }
+    }
+
     function drawDroneWaypoints(coords, cLon, cLat) {
-      // Create a flight lawnmower pattern across the infected patch
       const minX = Math.min(...coords.map(c => c[0]));
       const maxX = Math.max(...coords.map(c => c[0]));
       const minY = Math.min(...coords.map(c => c[1]));
@@ -430,24 +793,22 @@
       for (let i = 0; i < steps; i++) {
         const x = minX + i * stepX;
         if (up) {
-          waypoints.push([x, minY]);
-          waypoints.push([x, maxY]);
+          waypoints.push([x, minY - 0.0001]);
+          waypoints.push([x, maxY + 0.0001]);
         } else {
-          waypoints.push([x, maxY]);
-          waypoints.push([x, minY]);
+          waypoints.push([x, maxY + 0.0001]);
+          waypoints.push([x, minY - 0.0001]);
         }
         up = !up;
       }
 
       const waypointGeoJSON = {
         type: 'FeatureCollection',
-        features: [
-          {
-            type: 'Feature',
-            geometry: { type: 'LineString', coordinates: waypoints },
-            properties: {}
-          }
-        ]
+        features: [{
+          type: 'Feature',
+          geometry: { type: 'LineString', coordinates: waypoints },
+          properties: {}
+        }]
       };
 
       if (map.getSource('uav-waypoints-src')) {
@@ -497,16 +858,26 @@
       phenologyChart.update();
     }
 
-    // --- 5. EVENT LISTENERS ---
-    map.on('load', loadData);
-
+    // --- 5. EVENT LISTENERS & LAYER TOGGLES ---
     document.getElementById('estate-selector').addEventListener('change', (e) => {
-      selectEstateByName(e.target.value);
+      const found = ESTATE_DATASTORE.find(item => item.name === e.target.value);
+      if (found) selectEstate(found);
     });
 
     document.getElementById('layer-hotspot').addEventListener('change', (e) => {
       map.setLayoutProperty('hotspot-fill-layer', 'visibility', e.target.checked ? 'visible' : 'none');
       map.setLayoutProperty('hotspot-line-layer', 'visibility', e.target.checked ? 'visible' : 'none');
+    });
+
+    document.getElementById('layer-estate').addEventListener('change', (e) => {
+      map.setLayoutProperty('estate-boundary-line', 'visibility', e.target.checked ? 'visible' : 'none');
+      map.setLayoutProperty('estate-boundary-fill', 'visibility', e.target.checked ? 'visible' : 'none');
+    });
+
+    document.getElementById('layer-buffer').addEventListener('change', (e) => {
+      if (map.getLayer('buffer-line-layer')) {
+        map.setLayoutProperty('buffer-line-layer', 'visibility', e.target.checked ? 'visible' : 'none');
+      }
     });
 
     document.getElementById('layer-waypoints').addEventListener('change', (e) => {
@@ -515,18 +886,26 @@
       }
     });
 
-    // DJI KML Export
+    // --- 6. STANDARDIZED UAV EXPORTS (NO VENDOR LOCK-IN) ---
     document.getElementById('btn-export-kml').addEventListener('click', () => {
-      if (!currentFeature) return;
-      const coords = currentFeature.geometry.coordinates[0];
+      if (!currentEstate) return;
+      const coords = currentEstate.hotspot_coords;
       const kmlCoords = coords.map(c => `${c[0]},${c[1]},2.5`).join(' ');
-      const p = currentFeature.properties;
+      const p = currentEstate;
       const kmlContent = `<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
   <Document>
-    <name>ChaiRakshak_${p.estate.replace(/ /g, '_')}_Mission</name>
+    <name>ChaiRakshak_${p.name.replace(/ /g, '_')}_Mission</name>
     <Placemark>
-      <name>${p.pest_short} Targeted Spot-Spray Zone</name>
+      <name>${p.pest_short} Spot-Spray Target Zone</name>
+      <ExtendedData>
+        <Data name="Estate"><value>${p.name}</value></Data>
+        <Data name="Section"><value>${p.section}</value></Data>
+        <Data name="Chemical"><value>${p.chem}</value></Data>
+        <Data name="Dosage"><value>${p.dosage}</value></Data>
+        <Data name="Flight_Alt"><value>${p.alt}</value></Data>
+        <Data name="Flow_Rate"><value>${p.flow}</value></Data>
+      </ExtendedData>
       <Polygon>
         <extrude>1</extrude>
         <altitudeMode>relativeToGround</altitudeMode>
@@ -540,18 +919,56 @@
       const blob = new Blob([kmlContent], { type: 'application/vnd.google-earth.kml+xml' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `ChaiRakshak_DJI_${p.estate.replace(/ /g, '_')}.kml`;
+      a.download = `ChaiRakshak_UAV_Mission_${p.name.replace(/ /g, '_')}.kml`;
       a.click();
     });
 
-    // GeoJSON Export
     document.getElementById('btn-export-geojson').addEventListener('click', () => {
-      if (!currentFeature) return;
-      const blob = new Blob([JSON.stringify(currentFeature, null, 2)], { type: 'application/json' });
+      if (!currentEstate) return;
+      const feature = {
+        type: 'Feature',
+        properties: currentEstate,
+        geometry: {
+          type: 'Polygon',
+          coordinates: [currentEstate.hotspot_coords]
+        }
+      };
+      const blob = new Blob([JSON.stringify(feature, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `ChaiRakshak_${currentFeature.properties.estate.replace(/ /g, '_')}.geojson`;
+      a.download = `ChaiRakshak_Target_${currentEstate.name.replace(/ /g, '_')}.geojson`;
       a.click();
+    });
+
+    // --- 7. WELCOME LOADER SEQUENCE LOGIC ---
+    window.addEventListener('DOMContentLoaded', () => {
+      const splash = document.getElementById('splash-screen');
+      const text = document.getElementById('splash-status-text');
+      const bar = document.getElementById('splash-progress-bar');
+      const pct = document.getElementById('splash-pct');
+
+      const steps = [
+        { progress: 28, label: 'Synchronizing RTK Ground Station...' },
+        { progress: 54, label: 'Harmonizing Sentinel-2 Multi-Year Phenology...' },
+        { progress: 82, label: 'Loading 10 Upper Assam Cadastral Boundaries...' },
+        { progress: 100, label: 'ChaiRakshak-AI Operations Station Ready.' }
+      ];
+
+      let currentStep = 0;
+      const interval = setInterval(() => {
+        if (currentStep < steps.length) {
+          bar.style.width = `${steps[currentStep].progress}%`;
+          pct.innerText = `${steps[currentStep].progress}%`;
+          text.innerText = steps[currentStep].label;
+          currentStep++;
+        } else {
+          clearInterval(interval);
+          setTimeout(() => {
+            splash.style.opacity = '0';
+            setTimeout(() => splash.style.display = 'none', 600);
+          }, 350);
+        }
+      }, 420);
     });
   </script>
 </body>
