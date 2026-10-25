@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>ChaiRakshak-AI (চাহ-ৰক্ষক) | Autonomous Tea Canopy Defense & Spot-Spraying</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- MapLibre GL JS -->
+  <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js & PapaParse (for CSV parsing) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <!-- Three.js for 3D Drone & Spray Cone Simulation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    #map { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-900 flex h-screen overflow-hidden">
+
+  <!-- LEFT CONTROL & OPERATIONS SIDEBAR -->
+  <aside class="z-20 w-[420px] h-full flex flex-col justify-between glass-panel shadow-2xl custom-scrollbar overflow-y-auto">
+    <div class="p-5 space-y-4">
+      
+      <!-- ChaiRakshak-AI Brand Header -->
+      <div class="flex items-center space-x-3 border-b border-slate-200 pb-3.5">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-700 to-teal-500 flex items-center justify-center text-white font-black text-lg shadow-md ring-2 ring-emerald-200">
+          চ
+        </div>
+        <div>
+          <div class="flex items-center space-x-1.5">
+            <h1 class="text-base font-black tracking-tight text-slate-900 leading-none">ChaiRakshak-AI</h1>
+            <span class="text-[9px] bg-emerald-100 text-emerald-800 font-extrabold px-1.5 py-0.5 rounded uppercase">v2.6</span>
+          </div>
+          <p class="text-[11px] font-bold text-emerald-700 mt-1">চাহ-ৰক্ষক • TRA Tocklai Compliance</p>
+        </div>
+      </div>
+
+      <!-- District & Estate Switcher -->
+      <div>
+        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Target Estate District</label>
+        <select id="district-selector" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm focus:ring-2 focus:ring-emerald-500 outline-none transition">
+          <option value="Jorhat" selected>Jorhat (Cinnamara Div-2)</option>
+          <option value="Dibrugarh">Dibrugarh (Chabua Central)</option>
+          <option value="Tinsukia">Tinsukia (Doomdooma Block-4)</option>
+          <option value="Charaideo">Charaideo (Sonari High Div)</option>
+          <option value="Sivasagar">Sivasagar (Amguri River Bank)</option>
+        </select>
+      </div>
+
+      <!-- Live Sustainability & MRL Impact Counters -->
+      <div class="grid grid-cols-2 gap-2.5">
+        <div class="p-3 rounded-xl bg-gradient-to-br from-emerald-50 to-teal-100 border border-emerald-200">
+          <div class="text-[10px] uppercase font-bold text-emerald-800">Chemical Reduction</div>
+          <div class="text-2xl font-black text-emerald-700 tracking-tight" id="metric-saving">77.9%</div>
+          <div class="text-[10px] text-emerald-600 mt-0.5">vs. blanket spray</div>
+        </div>
+        <div class="p-3 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200">
+          <div class="text-[10px] uppercase font-bold text-blue-800">EU & Japan MRL Risk</div>
+          <div class="text-2xl font-black text-blue-700 tracking-tight" id="metric-mrl">0.0% Non-Comp</div>
+          <div class="text-[10px] text-blue-600 mt-0.5">Sub-Block Targeted Mode</div>
+        </div>
+      </div>
+
+      <!-- Active Hotspot Detail Card -->
+      <div id="hotspot-card" class="p-3.5 rounded-xl bg-white border border-slate-200 shadow-sm space-y-2 text-xs">
+        <div class="flex items-center justify-between border-b pb-2">
+          <span class="font-bold text-slate-800 text-sm" id="card-section">SEC-09C (Cinnamara)</span>
+          <span id="card-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700">Red Spider Mite</span>
+        </div>
+        <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-slate-600 pt-1">
+          <div>Area: <strong class="text-slate-900" id="card-area">4,350 m²</strong></div>
+          <div>Confidence: <strong class="text-slate-900" id="card-conf">94%</strong></div>
+          <div>Baseline NDVI: <strong class="text-slate-900" id="card-base-ndvi">0.81</strong></div>
+          <div>Infested NDVI: <strong class="text-rose-600" id="card-curr-ndvi">0.54</strong></div>
+          <div class="col-span-2 pt-1 border-t text-[11px]">
+            Prescription: <strong class="text-slate-900" id="card-chem">Hexythiazox 5.45% EC</strong>
+          </div>
+          <div class="col-span-2 text-[11px]">
+            Dosage: <strong class="text-slate-900" id="card-dosage">500 ml/ha (25L water/ha)</strong>
+          </div>
+          <div class="col-span-2 text-[11px]">
+            Pre-Harvest Interval (PHI): <strong class="text-amber-600" id="card-phi">7 Days Withholding</strong>
+          </div>
+        </div>
+
+        <div class="pt-2 flex gap-2">
+          <button id="btn-export-geojson" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2 px-3 rounded-lg text-center transition">
+            Export GeoJSON
+          </button>
+          <button id="btn-export-kml" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-3 rounded-lg text-center transition">
+            DJI WPMZ/KML
+          </button>
+        </div>
+      </div>
+
+      <!-- Multi-Year NDVI/NDRE Trend Chart (46 Months) -->
+      <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Multi-Year Phenology</span>
+          <span class="text-[10px] font-mono text-slate-500">2023 – 2026 Monthly</span>
+        </div>
+        <div class="h-44 w-full">
+          <canvas id="phenologyChart"></canvas>
+        </div>
+      </div>
+
+      <!-- 3D Drone Spot-Spraying Digital Twin -->
+      <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">3D UAV Canter & Spray Sim</span>
+          <span class="text-[10px] text-emerald-600 font-bold">2.5m AGL Spot-Spraying</span>
+        </div>
+        <div id="threejs-canvas-container" class="w-full h-32 rounded-lg bg-slate-950 overflow-hidden relative"></div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="p-3 bg-slate-50 border-t border-slate-200 text-center text-[10px] text-slate-500">
+      ChaiRakshak-AI • Built for TRA Tocklai NESFIC-1-07 & DGCA Remote Pilot SOPs
+    </div>
+  </aside>
+
+  <!-- RIGHT SATELLITE MAP CONTAINER -->
+  <main class="relative flex-1 h-full">
+    <div id="map"></div>
+
+    <!-- Map Floating Controls -->
+    <div class="absolute top-4 right-4 z-10 flex flex-col space-y-2">
+      <div class="glass-panel px-3 py-2 rounded-xl shadow-lg text-xs space-y-1">
+        <div class="font-bold text-slate-800 mb-1">Layer Toggles</div>
+        <label class="flex items-center space-x-2 cursor-pointer">
+          <input type="checkbox" id="chk-hotspots" checked class="rounded text-emerald-600 focus:ring-0">
+          <span>Infestation Hotspots</span>
+        </label>
+        <label class="flex items-center space-x-2 cursor-pointer">
+          <input type="checkbox" id="chk-buffers" checked class="rounded text-blue-600 focus:ring-0">
+          <span>5m Spray Buffer Rings</span>
+        </label>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // --- 1. CONFIGURATION & DISTRICT DATA MAPPINGS ---
+    const DISTRICT_MAP = {
+      "Jorhat": { key: "Jorhat_Tocklai_Cinnamara", center: [94.2195, 26.7245], zoom: 15.5 },
+      "Dibrugarh": { key: "Dibrugarh_Chabua", center: [95.1735, 27.4725], zoom: 15.5 },
+      "Tinsukia": { key: "Tinsukia_Doomdooma", center: [95.5540, 27.5540], zoom: 15.5 },
+      "Charaideo": { key: "Charaideo_Sonari", center: [95.0270, 27.0235], zoom: 15.5 },
+      "Sivasagar": { key: "Sivasagar_Amguri", center: [94.5835, 26.8035], zoom: 15.5 }
+    };
+
+    let HOTSPOTS_DATA = null;
+    let CSV_RECORDS = [];
+    let activeFeature = null;
+
+    // --- 2. INITIALIZE MAPLIBRE GL JS ---
+    const map = new maplibregl.Map({
+      container: 'map',
+      style: {
+        version: 8,
+        sources: {
+          'satellite-tiles': {
+            type: 'raster',
+            tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+            tileSize: 256,
+            attribution: 'Esri World Imagery'
+          }
+        },
+        layers: [
+          { id: 'satellite-layer', type: 'raster', source: 'satellite-tiles', minzoom: 0, maxzoom: 20 }
+        ]
+      },
+      center: DISTRICT_MAP["Jorhat"].center,
+      zoom: DISTRICT_MAP["Jorhat"].zoom,
+      pitch: 45,
+      bearing: -15
+    });
+
+    map.addControl(new maplibregl.NavigationControl(), 'top-right');
+    map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-right');
+
+    // --- 3. CHART.JS SETUP ---
+    const ctx = document.getElementById('phenologyChart').getContext('2d');
+    const phenologyChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label: 'NDVI (Canopy Health)',
+            data: [],
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            borderWidth: 2,
+            tension: 0.3,
+            fill: true
+          },
+          {
+            label: 'NDRE (Red Edge Chlorophyll)',
+            data: [],
+            borderColor: '#6366f1',
+            borderWidth: 1.5,
+            borderDash: [4, 4],
+            tension: 0.3
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', labels: { boxWidth: 10, font: { size: 9 } } }
+        },
+        scales: {
+          y: { min: 0.1, max: 0.9, ticks: { font: { size: 9 } } },
+          x: { ticks: { font: { size: 8 }, maxRotation: 45 } }
+        }
+      }
+    });
+
+    // --- 4. LOAD EXTERNAL DATA FILES (CSV + GEOJSON) ---
+    async function initData() {
+      try {
+        // Load GeoJSON Hotspots
+        const gjRes = await fetch('data/assam_estate_hotspots.geojson');
+        HOTSPOTS_DATA = await gjRes.json();
+      } catch (err) {
+        console.warn("Local fetch restricted; loading embedded fallback GeoJSON...");
+        HOTSPOTS_DATA = {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "properties": {
+                "district": "Jorhat", "estate": "Cinnamara Division 2", "section": "SEC-09C",
+                "pest_type": "Red Spider Mite", "confidence": 0.94, "area_sqm": 4350,
+                "baseline_ndvi": 0.81, "current_ndvi": 0.54, "chemical": "Hexythiazox 5.45% EC",
+                "dosage_per_ha": "500 ml", "water_volume_l_ha": 25, "phi_days": 7, "mrl_safe": true, "color": "#e11d48"
+              },
+              "geometry": { "type": "Polygon", "coordinates": [[[94.218, 26.723], [94.221, 26.723], [94.221, 26.726], [94.218, 26.726], [94.218, 26.723]]] }
+            },
+            {
+              "type": "Feature",
+              "properties": {
+                "district": "Dibrugarh", "estate": "Chabua Central", "section": "SEC-14A",
+                "pest_type": "Helopeltis theivora", "confidence": 0.89, "area_sqm": 3120,
+                "baseline_ndvi": 0.79, "current_ndvi": 0.49, "chemical": "Clothianidin 50% WDG",
+                "dosage_per_ha": "120 g", "water_volume_l_ha": 30, "phi_days": 10, "mrl_safe": true, "color": "#ea580c"
+              },
+              "geometry": { "type": "Polygon", "coordinates": [[[95.172, 27.471], [95.175, 27.471], [95.175, 27.474], [95.172, 27.474], [95.172, 27.471]]] }
+            },
+            {
+              "type": "Feature",
+              "properties": {
+                "district": "Tinsukia", "estate": "Doomdooma Block 4", "section": "SEC-22",
+                "pest_type": "Looper Caterpillar", "confidence": 0.96, "area_sqm": 5800,
+                "baseline_ndvi": 0.83, "current_ndvi": 0.41, "chemical": "Emamectin Benzoate 5% SG",
+                "dosage_per_ha": "200 g", "water_volume_l_ha": 25, "phi_days": 5, "mrl_safe": true, "color": "#d97706"
+              },
+              "geometry": { "type": "Polygon", "coordinates": [[[95.552, 27.552], [95.556, 27.552], [95.556, 27.556], [95.552, 27.556], [95.552, 27.552]]] }
+            },
+            {
+              "type": "Feature",
+              "properties": {
+                "district": "Charaideo", "estate": "Sonari High Division", "section": "SEC-03B",
+                "pest_type": "Red Spider Mite", "confidence": 0.91, "area_sqm": 3900,
+                "baseline_ndvi": 0.82, "current_ndvi": 0.58, "chemical": "Hexythiazox 5.45% EC",
+                "dosage_per_ha": "500 ml", "water_volume_l_ha": 25, "phi_days": 7, "mrl_safe": true, "color": "#e11d48"
+              },
+              "geometry": { "type": "Polygon", "coordinates": [[[95.025, 27.022], [95.029, 27.022], [95.029, 27.025], [95.025, 27.025], [95.025, 27.022]]] }
+            },
+            {
+              "type": "Feature",
+              "properties": {
+                "district": "Sivasagar", "estate": "Amguri River Bank", "section": "SEC-11F",
+                "pest_type": "Helopeltis theivora", "confidence": 0.88, "area_sqm": 2700,
+                "baseline_ndvi": 0.78, "current_ndvi": 0.52, "chemical": "Clothianidin 50% WDG",
+                "dosage_per_ha": "120 g", "water_volume_l_ha": 30, "phi_days": 10, "mrl_safe": true, "color": "#ea580c"
+              },
+              "geometry": { "type": "Polygon", "coordinates": [[[94.582, 26.802], [94.585, 26.802], [94.585, 26.805], [94.582, 26.805], [94.582, 26.802]]] }
+            }
+          ]
+        };
+      }
+
+      // Load CSV Temporal Data
+      Papa.parse('data/assam_tea_3year_ndvi_ndre.csv', {
+        download: true,
+        header: true,
+        dynamicTyping: true,
+        complete: function(results) {
+          CSV_RECORDS = results.data;
+          updateChartData("Jorhat_Tocklai_Cinnamara");
+        },
+        error: function() {
+          console.warn("CSV load via HTTP skipped; generating baseline curve for demo...");
+          renderFallbackCurve();
+        }
+      });
+
+      renderMapLayers();
+    }
+
+    function renderMapLayers() {
+      if (!map.getSource('hotspots-src')) {
+        map.addSource('hotspots-src', {
+          type: 'geojson',
+          data: HOTSPOTS_DATA
+        });
+
+        map.addLayer({
+          id: 'hotspot-fills',
+          type: 'fill',
+          source: 'hotspots-src',
+          paint: {
+            'fill-color': ['coalesce', ['get', 'color'], '#e11d48'],
+            'fill-opacity': 0.65
+          }
+        });
+
+        map.addLayer({
+          id: 'hotspot-lines',
+          type: 'line',
+          source: 'hotspots-src',
+          paint: {
+            'line-color': '#ffffff',
+            'line-width': 2.5
+          }
+        });
+
+        map.on('click', 'hotspot-fills', (e) => {
+          if (e.features.length > 0) selectHotspot(e.features[0]);
+        });
+
+        map.on('mouseenter', 'hotspot-fills', () => map.getCanvas().style.cursor = 'pointer');
+        map.on('mouseleave', 'hotspot-fills', () => map.getCanvas().style.cursor = '');
+      }
+
+      selectHotspot(HOTSPOTS_DATA.features[0]);
+    }
+
+    function selectHotspot(feature) {
+      activeFeature = feature;
+      const props = feature.properties;
+      document.getElementById('card-section').innerText = `${props.section} (${props.estate})`;
+      document.getElementById('card-badge').innerText = props.pest_type;
+      document.getElementById('card-area').innerText = `${Number(props.area_sqm).toLocaleString()} m²`;
+      document.getElementById('card-conf').innerText = `${Math.round((props.confidence || 0.92) * 100)}%`;
+      document.getElementById('card-base-ndvi').innerText = props.baseline_ndvi || 0.81;
+      document.getElementById('card-curr-ndvi').innerText = props.current_ndvi || 0.54;
+      document.getElementById('card-chem').innerText = props.chemical;
+      document.getElementById('card-dosage').innerText = `${props.dosage_per_ha} (${props.water_volume_l_ha || 25}L water/ha)`;
+      document.getElementById('card-phi').innerText = `${props.phi_days || 7} Days Withholding`;
+
+      const dist = props.district;
+      if (DISTRICT_MAP[dist]) {
+        updateChartData(DISTRICT_MAP[dist].key);
+      }
+    }
+
+    function updateChartData(estateKey) {
+      if (CSV_RECORDS.length > 0) {
+        const filtered = CSV_RECORDS.filter(r => r.estate === estateKey && r.date);
+        phenologyChart.data.labels = filtered.map(r => r.date);
+        phenologyChart.data.datasets[0].data = filtered.map(r => Number(r.ndvi.toFixed(3)));
+        phenologyChart.data.datasets[1].data = filtered.map(r => Number(r.ndre.toFixed(3)));
+        phenologyChart.update();
+      } else {
+        renderFallbackCurve();
+      }
+    }
+
+    function renderFallbackCurve() {
+      const dates = ['2023-01', '2023-06', '2024-01', '2024-06', '2025-01', '2025-06', '2026-01', '2026-06', '2026-10'];
+      phenologyChart.data.labels = dates;
+      phenologyChart.data.datasets[0].data = [0.38, 0.65, 0.41, 0.72, 0.43, 0.77, 0.45, 0.79, 0.52];
+      phenologyChart.data.datasets[1].data = [0.24, 0.45, 0.26, 0.48, 0.27, 0.52, 0.28, 0.54, 0.33];
+      phenologyChart.update();
+    }
+
+    map.on('load', initData);
+
+    // District Switcher Event
+    document.getElementById('district-selector').addEventListener('change', (e) => {
+      const dist = e.target.value;
+      const target = DISTRICT_MAP[dist];
+      if (target) {
+        map.flyTo({ center: target.center, zoom: target.zoom, pitch: 45, duration: 2200 });
+        const matched = HOTSPOTS_DATA.features.find(f => f.properties.district === dist);
+        if (matched) selectHotspot(matched);
+      }
+    });
+
+    // --- 5. THREE.JS 3D DRONE SPOT-SPRAY SIMULATOR ---
+    const container = document.getElementById('threejs-canvas-container');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+    camera.position.set(0, 4.5, 6.5);
+    camera.lookAt(0, 0, 0);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(renderer.domElement);
+
+    // Ground Grid simulating tea bushes
+    const grid = new THREE.GridHelper(8, 16, 0x10b981, 0x1e293b);
+    scene.add(grid);
+
+    // Infestation Patch
+    const patchGeo = new THREE.CylinderGeometry(0.8, 0.8, 0.05, 24);
+    const patchMat = new THREE.MeshBasicMaterial({ color: 0xe11d48, transparent: true, opacity: 0.7 });
+    const patchMesh = new THREE.Mesh(patchGeo, patchMat);
+    scene.add(patchMesh);
+
+    // Drone Body & Spray Cone
+    const droneGroup = new THREE.Group();
+    const uavGeo = new THREE.BoxGeometry(0.5, 0.08, 0.5);
+    const uavMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+    droneGroup.add(new THREE.Mesh(uavGeo, uavMat));
+
+    const coneGeo = new THREE.ConeGeometry(0.7, 1.8, 16, 1, true);
+    const coneMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.35, wireframe: true });
+    const coneMesh = new THREE.Mesh(coneGeo, coneMat);
+    coneMesh.rotation.x = Math.PI;
+    coneMesh.position.y = -0.9;
+    droneGroup.add(coneMesh);
+
+    droneGroup.position.set(-1.8, 2.0, 0);
+    scene.add(droneGroup);
+
+    let theta = 0;
+    function animateThree() {
+      requestAnimationFrame(animateThree);
+      theta += 0.025;
+      droneGroup.position.x = Math.sin(theta) * 1.5;
+      droneGroup.position.z = Math.cos(theta) * 1.0;
+      droneGroup.rotation.y = -theta;
+      renderer.render(scene, camera);
+    }
+    animateThree();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    // --- 6. EXPORT MISSIONS (GeoJSON & DJI Pilot KML) ---
+    document.getElementById('btn-export-geojson').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(activeFeature, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `ChaiRakshak_Prescription_${activeFeature.properties.section}.geojson`;
+      a.click();
+    });
+
+    document.getElementById('btn-export-kml').addEventListener('click', () => {
+      const coords = activeFeature.geometry.coordinates[0];
+      const kmlCoords = coords.map(c => `${c[0]},${c[1]},2.5`).join(' ');
+      const kmlContent = `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>ChaiRakshak_Mission_${activeFeature.properties.section}</name>
+    <Placemark>
+      <name>${activeFeature.properties.pest_type} Spot-Spray Target</name>
+      <Polygon>
+        <extrude>1</extrude>
+        <altitudeMode>relativeToGround</altitudeMode>
+        <outerBoundaryIs>
+          <LinearRing><coordinates>${kmlCoords}</coordinates></LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+  </Document>
+</kml>`;
+      const blob = new Blob([kmlContent], { type: 'application/vnd.google-earth.kml+xml' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `ChaiRakshak_DJI_Mission_${activeFeature.properties.section}.kml`;
+      a.click();
+    });
+  </script>
+</body>
+</html>
